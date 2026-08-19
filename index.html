@@ -281,7 +281,6 @@
 
 <script>
 // ==== Backend connection ====
-// Paste your Apps Script Web App /exec URL here (see Code.gs setup notes).
 const API_URL = "https://script.google.com/macros/s/AKfycbyHdxJs_bEpXYqxNZwYqGPH58oP8C-MgKfHFzLdLW43ceSs48z4VdDDADJIPBF4IcuasA/exec";
 
 async function apiGet(resource){
@@ -328,8 +327,9 @@ async function loadAll(isBackgroundPoll){
   if(isBackgroundPoll && Date.now() < suppressPollUntil) return;
   try{
     const [freshItems, freshMeals] = await Promise.all([apiGet("items"), apiGet("meals")]);
-    items = freshItems.map(it => ({section: it.section, category: it.category, item: it.item, qty: Number(it.qty) || 0}));
-    meals = freshMeals.map(m => ({day: m.day, meal: m.meal, cooked: m.cooked === true || m.cooked === "TRUE" || m.cooked === "true"}));
+    // section is matched case/whitespace-insensitively so it doesn't matter how it was typed in the sheet
+    items = freshItems.map(it => ({section: String(it.section || "").trim().toLowerCase(), category: String(it.category || "").trim(), item: String(it.item || "").trim(), qty: Number(it.qty) || 0}));
+    meals = freshMeals.map(m => ({day: m.day, meal: m.meal, cooked: String(m.cooked).trim().toLowerCase() === "true"}));
     setSyncStatus("ok", "Synced");
     render();
   }catch(err){
@@ -450,9 +450,15 @@ function renderItems(container){
     tag.textContent = section === "pantry" ? "Pantry" : section === "freezer" ? "Freezer" : "Fresh / Fridge";
     block.appendChild(tag);
 
-    const categories = [...new Set(sectionItems.map(it => it.category))];
-    categories.forEach(category => {
-      const catItems = sectionItems.filter(it => it.category === category);
+    // group categories case/whitespace-insensitively, but display using the first-seen casing
+    const catDisplay = new Map(); // lowercase key -> display label
+    sectionItems.forEach(it => {
+      const key = it.category.toLowerCase();
+      if(!catDisplay.has(key)) catDisplay.set(key, it.category);
+    });
+
+    catDisplay.forEach((category, key) => {
+      const catItems = sectionItems.filter(it => it.category.toLowerCase() === key);
       totalShown += catItems.length;
 
       const catWrap = document.createElement("div");
@@ -569,7 +575,12 @@ function renderAddItemForm(container){
 
   const datalist = document.createElement("datalist");
   datalist.id = "categoryOptions";
-  [...new Set(items.map(it => it.category))].forEach(c => {
+  const catOptions = new Map(); // lowercase key -> display label, dedup case-insensitively
+  items.forEach(it => {
+    const key = it.category.toLowerCase();
+    if(!catOptions.has(key)) catOptions.set(key, it.category);
+  });
+  catOptions.forEach(c => {
     const opt = document.createElement("option");
     opt.value = c;
     datalist.appendChild(opt);
