@@ -16,8 +16,7 @@
     --freezer:#3D6E86;
     --freezer-soft:#E4EEF2;
     --tag:#B5542A;
-    --meat:#8B3A3A;
-    --meat-soft:#F4DEDA;
+    --tag-soft:#F7E4D7;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -32,18 +31,15 @@
     background:var(--paper);
     border-bottom:1px solid var(--line);
     padding:18px 16px 14px;
+    position:sticky;
+    top:0;
+    z-index:10;
   }
   h1{
     font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;
     font-size:26px;
     font-weight:600;
-    margin:0 0 2px;
-    letter-spacing:0.2px;
-  }
-  .subtitle{
-    font-size:13px;
-    color:var(--ink-soft);
-    margin:0 0 14px;
+    margin:0 0 10px;
   }
   .search{
     width:100%;
@@ -55,36 +51,11 @@
     color:var(--ink);
     outline:none;
   }
-  .search-wrap{
-    position:relative;
-  }
-  .search-wrap .search{
-    padding-right:38px;
-  }
-  .search-clear{
-    position:absolute;
-    right:8px;
-    top:50%;
-    transform:translateY(-50%);
-    width:24px;
-    height:24px;
-    border:none;
-    background:var(--line);
-    color:var(--ink-soft);
-    border-radius:50%;
-    font-size:14px;
-    line-height:1;
-    cursor:pointer;
-    display:none;
-    align-items:center;
-    justify-content:center;
-  }
-  .search-clear.show{display:flex;}
   .search:focus{border-color:var(--pantry);}
   .chips{
     display:flex;
     gap:8px;
-    margin-top:12px;
+    margin-top:10px;
     flex-wrap:wrap;
   }
   .chip{
@@ -102,81 +73,75 @@
   .chip.active[data-scope="pantry"]{background:var(--pantry);color:#fff;border-color:var(--pantry);}
   .chip.active[data-scope="freezer"]{background:var(--freezer);color:#fff;border-color:var(--freezer);}
   .chip.active[data-scope="fresh"]{background:var(--tag);color:#fff;border-color:var(--tag);}
-  .chip.active[data-scope="meat"]{background:var(--meat);color:#fff;border-color:var(--meat);}
-  .count-pill{
-    font-size:12px;
-    color:var(--ink-soft);
-    margin-top:10px;
-  }
   .sync-status{
     font-size:11.5px;
     font-weight:600;
-    margin-top:6px;
+    margin-top:8px;
     display:inline-flex;
     align-items:center;
     gap:5px;
     color:var(--ink-soft);
   }
-  .sync-status .dot{
-    width:7px;
-    height:7px;
-    border-radius:50%;
-    background:var(--ink-soft);
-    flex-shrink:0;
-  }
+  .sync-status .dot{width:7px;height:7px;border-radius:50%;background:var(--ink-soft);}
   .sync-status.ok{color:var(--pantry);}
   .sync-status.ok .dot{background:var(--pantry);}
   .sync-status.saving{color:var(--freezer);}
   .sync-status.saving .dot{background:var(--freezer);}
   .sync-status.error{color:var(--tag);}
   .sync-status.error .dot{background:var(--tag);}
-  .hide-zero-toggle{
+  main{padding:14px 16px 0;}
+  .meals-block{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px;
+    margin-bottom:22px;
+  }
+  .meals-title{
+    font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+    font-size:16px;
+    font-weight:600;
+    margin:0 0 10px;
+  }
+  .meal-row{
     display:flex;
     align-items:center;
-    gap:6px;
-    font-size:12.5px;
-    color:var(--ink-soft);
-    margin-top:8px;
-    user-select:none;
-  }
-  .hide-zero-toggle input{
-    accent-color:var(--pantry);
-    width:15px;
-    height:15px;
-  }
-  .expiry-banner{
-    background:#FBE3D8;
-    border:1px solid #E8B7A0;
-    border-radius:12px;
-    padding:12px 14px;
-    margin-bottom:16px;
-    display:flex;
-    align-items:flex-start;
     gap:10px;
+    padding:8px 0;
+    border-top:1px solid var(--line);
   }
-  .expiry-banner .icon{
-    font-size:18px;
-    line-height:1.3;
+  .meal-row:first-of-type{border-top:none;}
+  .meal-day{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    width:70px;
     flex-shrink:0;
   }
-  .expiry-banner .body{
+  .meal-name-input{
     flex:1;
+    border:1px solid transparent;
+    background:transparent;
+    font-size:14.5px;
+    color:var(--ink);
+    padding:6px 8px;
+    border-radius:7px;
   }
-  .expiry-banner .title{
-    font-weight:700;
-    font-size:13.5px;
-    color:#8A3A1E;
-    margin-bottom:3px;
+  .meal-name-input:focus{border-color:var(--line);background:var(--paper);outline:none;}
+  .meal-name-input.cooked{text-decoration:line-through;color:var(--ink-soft);}
+  .meal-cooked-label{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    font-size:11px;
+    color:var(--ink-soft);
+    flex-shrink:0;
+    user-select:none;
+    cursor:pointer;
   }
-  .expiry-banner .list{
-    font-size:12.5px;
-    color:#7A4530;
-    line-height:1.5;
-  }
-  .expiry-banner .list b{
-    font-weight:700;
-  }
-  main{padding:6px 16px 0;}
+  .meal-cooked-label input{accent-color:var(--pantry);width:16px;height:16px;}
   .section-block{margin-top:22px;}
   .shelf-tag{
     display:inline-block;
@@ -187,381 +152,41 @@
     padding:5px 10px 4px;
     border-radius:3px;
     margin-bottom:9px;
-    transform:rotate(-0.6deg);
   }
   .shelf-tag.pantry{background:var(--pantry-soft);color:var(--pantry);}
   .shelf-tag.freezer{background:var(--freezer-soft);color:var(--freezer);}
-  .shelf-tag.fresh{background:#F7E4D7;color:var(--tag);}
-  .meals-block{margin-top:18px;}
-  .meals-header{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    cursor:pointer;
-    user-select:none;
-    margin-bottom:9px;
-  }
-  .meals-header .shelf-tag{margin-bottom:0;}
-  .meals-chevron{
-    font-size:12px;
-    color:var(--ink-soft);
-    transition:transform 0.2s ease;
-    flex-shrink:0;
-    padding:4px 6px;
-  }
-  .meals-chevron.collapsed{transform:rotate(-90deg);}
-  .meal-card{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:12px;
-    padding:12px 14px;
-    margin-bottom:9px;
-  }
-  .meal-card.cooked{opacity:0.55;}
-  .meal-row{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-  }
-  .meal-day{
-    font-size:11px;
-    font-weight:700;
-    letter-spacing:0.05em;
-    text-transform:uppercase;
-    color:var(--ink-soft);
-  }
-  .meal-name{
-    font-size:14.5px;
-    font-weight:600;
-    margin-top:2px;
-  }
-  .meal-btn{
-    flex-shrink:0;
-    border:1px solid var(--pantry);
-    background:var(--pantry);
-    color:#fff;
-    font-size:12.5px;
-    font-weight:700;
-    padding:8px 12px;
-    border-radius:8px;
-    cursor:pointer;
-    white-space:nowrap;
-  }
-  .meal-btn.secondary{
-    background:var(--card);
-    color:var(--ink-soft);
-    border-color:var(--line);
-  }
-  .meal-checklist{
-    margin-top:12px;
-    padding-top:12px;
-    border-top:1px solid var(--line);
-  }
-  .meal-checklist-hint{
-    font-size:12px;
-    color:var(--ink-soft);
-    margin-bottom:10px;
-    line-height:1.4;
-  }
-  .meal-ingredient-row{
-    display:flex;
-    flex-direction:column;
-    gap:4px;
-    margin-bottom:12px;
-  }
-  .meal-ingredient-label{
-    font-size:13.5px;
-    font-weight:600;
-  }
-  .meal-ingredient-bottom{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-  }
-  .meal-ingredient-stock{
-    font-size:12px;
-    color:var(--ink-soft);
-  }
-  .meal-ingredient-stock .stock-num{
-    font-weight:700;
-    color:var(--ink);
-    font-variant-numeric:tabular-nums;
-  }
-  .meal-ingredient-used{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    flex-shrink:0;
-  }
-  .meal-ingredient-used-label{
-    font-size:11px;
-    color:var(--ink-soft);
-    text-transform:uppercase;
-    letter-spacing:0.04em;
-  }
-  .meal-ingredient-input{
-    width:56px;
-    text-align:center;
-    border:1px solid var(--line);
-    border-radius:7px;
-    padding:5px 4px;
-    font-size:14px;
-    font-variant-numeric:tabular-nums;
-  }
-  .meal-actions{
-    display:flex;
-    gap:8px;
-    margin-top:10px;
-  }
-  .meal-actions button{flex:1;}
-  .meal-empty-note{
-    font-size:13px;
-    color:var(--ink-soft);
-    font-style:italic;
-    margin-top:4px;
-  }
-  .meal-extra-row{
-    display:flex;
-    align-items:center;
-    gap:14px;
-    margin-top:8px;
-    flex-wrap:wrap;
-  }
-  .hit-btn{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    border:none;
-    background:none;
-    padding:0;
-    font-size:19px;
-    line-height:1;
-    cursor:pointer;
-    filter:grayscale(1);
-    opacity:0.45;
-  }
-  .hit-btn.active{
-    filter:none;
-    opacity:1;
-  }
-  .meal-note-display{
-    font-size:12.5px;
-    color:var(--ink-soft);
-    font-style:italic;
-    margin-top:8px;
-    line-height:1.5;
-    cursor:pointer;
-  }
-  .meal-note-edit{
-    margin-top:10px;
-  }
-  .meal-note-edit textarea{
-    width:100%;
-    min-height:70px;
-    border:1px solid var(--line);
-    border-radius:8px;
-    padding:8px;
-    font-size:13px;
-    font-family:inherit;
-    color:var(--ink);
-    background:var(--paper);
-    resize:vertical;
-  }
-  .meal-note-edit-actions{
-    display:flex;
-    gap:8px;
-    margin-top:8px;
-  }
-  .recipe-toggle-row{
-    margin-top:8px;
-  }
-  .recipe-link{
-    font-size:12.5px;
-    font-weight:700;
-    color:var(--pantry);
-    background:none;
-    border:none;
-    padding:0;
-    cursor:pointer;
-    text-decoration:underline;
-    text-underline-offset:2px;
-  }
-  .meal-recipe{
-    margin-top:12px;
-    padding-top:12px;
-    border-top:1px solid var(--line);
-  }
-  .recipe-servings{
-    font-size:12px;
-    color:var(--ink-soft);
-    font-style:italic;
-    margin-bottom:10px;
-  }
-  .recipe-subhead{
-    font-size:11.5px;
-    font-weight:700;
-    letter-spacing:0.04em;
-    text-transform:uppercase;
-    color:var(--ink-soft);
-    margin:0 0 6px;
-  }
-  .recipe-ingredients{
-    margin:0 0 12px;
-    padding-left:18px;
-    font-size:13.5px;
-    line-height:1.55;
-  }
-  .recipe-ingredients li{margin-bottom:2px;}
-  .recipe-steps{
-    margin:0 0 10px;
-    padding-left:18px;
-    font-size:13.5px;
-    line-height:1.6;
-  }
-  .recipe-steps li{margin-bottom:6px;}
-  .recipe-note{
-    font-size:12.5px;
-    color:var(--ink-soft);
-    font-style:italic;
-    line-height:1.5;
-  }
+  .shelf-tag.fresh{background:var(--tag-soft);color:var(--tag);}
   .category-title{
     font-size:14px;
     font-weight:700;
     color:var(--ink);
     margin:0 0 8px;
   }
-  .category-header{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    cursor:pointer;
-    user-select:none;
-    margin-bottom:8px;
-  }
-  .category-header .category-title{margin-bottom:0;}
-  .category-chevron{
-    font-size:11px;
-    color:var(--ink-soft);
-    transition:transform 0.2s ease;
-    flex-shrink:0;
-    padding:4px 6px;
-  }
-  .category-chevron.collapsed{transform:rotate(-90deg);}
   .category-group{margin-bottom:18px;}
   ul.items{list-style:none;margin:0;padding:0;}
   li.item{
     display:flex;
-    flex-direction:column;
-    align-items:stretch;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
     background:var(--card);
     border:1px solid var(--line);
     border-radius:10px;
     padding:10px 12px;
     margin-bottom:7px;
   }
-  li.item.zero{opacity:0.42;}
-  .item-top-row{
+  li.item.zero{opacity:0.45;}
+  .item-name{font-size:14.5px;line-height:1.3;}
+  .item-controls{
     display:flex;
     align-items:center;
-    justify-content:space-between;
     gap:10px;
-  }
-  .item-name{
-    font-size:14.5px;
-    line-height:1.3;
-  }
-  .item-tags{
-    display:flex;
-    flex-wrap:wrap;
-    gap:6px;
-    margin-top:5px;
-  }
-  .tag-pill{
-    font-size:11px;
-    font-weight:700;
-    padding:3px 9px;
-    border-radius:999px;
-    white-space:nowrap;
-  }
-  .tag-pill.opened{background:#F3ECD9;color:#8A6D1D;}
-  .tag-pill.opened-stale{background:#F6D9D9;color:#B33F3F;}
-  .tag-pill.purchased{background:#F7E4D7;color:var(--tag);}
-  .tag-pill.exp-ok{background:var(--pantry-soft);color:var(--pantry);}
-  .tag-pill.exp-soon{background:#FCEBD5;color:#B5542A;}
-  .tag-pill.exp-over{background:#F6D9D9;color:#B33F3F;}
-  .tag-link{
-    font-size:11px;
-    font-weight:600;
-    color:var(--ink-soft);
-    text-decoration:underline;
-    text-underline-offset:2px;
-    cursor:pointer;
-    background:none;
-    border:none;
-    padding:0;
-  }
-  .batch-row{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    padding:8px 0;
-    border-top:1px solid var(--line);
-  }
-  .batch-meta{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    flex-wrap:wrap;
-    font-size:11px;
-  }
-  .edit-row{
-    display:flex;
-    align-items:center;
-    flex-wrap:wrap;
-    gap:8px;
-    margin-top:10px;
-    padding-top:10px;
-    border-top:1px solid var(--line);
-  }
-  .edit-row input[type="number"]{
-    width:64px;
-    text-align:center;
-    border:1px solid var(--line);
-    border-radius:7px;
-    padding:6px 4px;
-    font-size:14px;
-    font-variant-numeric:tabular-nums;
-  }
-  .edit-row input[type="date"]{
-    border:1px solid var(--line);
-    border-radius:7px;
-    padding:6px 8px;
-    font-size:13.5px;
-  }
-  .edit-row button{
-    border:1px solid var(--line);
-    background:var(--paper);
-    color:var(--ink);
-    border-radius:7px;
-    padding:6px 11px;
-    font-size:12.5px;
-    font-weight:700;
-    cursor:pointer;
-  }
-  .edit-row button.primary{
-    background:var(--pantry);
-    color:#fff;
-    border-color:var(--pantry);
+    flex-shrink:0;
   }
   .stepper{
     display:flex;
     align-items:center;
     gap:2px;
-    flex-shrink:0;
   }
   .stepper button{
     width:28px;
@@ -574,207 +199,67 @@
     color:var(--ink);
     cursor:pointer;
   }
-  .stepper button:active{background:var(--line);}
-  .stepper.mini button{
-    width:22px;
-    height:22px;
-    font-size:13px;
-    border-radius:6px;
-  }
-  .stepper.mini .qty{
-    min-width:18px;
-    font-size:12.5px;
-  }
-  .opened-count-row{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    margin-top:5px;
-  }
   .qty{
     min-width:26px;
     text-align:center;
     font-variant-numeric:tabular-nums;
     font-weight:700;
     font-size:14.5px;
+  }
+  .remove-btn{
+    border:none;
+    background:none;
+    color:var(--ink-soft);
+    font-size:16px;
     cursor:pointer;
+    padding:4px;
+    line-height:1;
   }
   .empty-state{
     text-align:center;
     color:var(--ink-soft);
-    padding:60px 20px;
+    padding:50px 20px;
     font-size:14px;
   }
-  .footnote{
-    text-align:center;
-    color:var(--ink-soft);
-    font-size:12px;
-    padding:28px 20px 4px;
-    line-height:1.5;
-  }
-  .actions-toggle{
-    display:inline-flex;
-    align-items:center;
-    gap:5px;
-    margin-top:10px;
-    padding:7px 13px;
-    border-radius:20px;
-    border:1px solid var(--line);
+  .add-item-block{
     background:var(--card);
-    color:var(--ink-soft);
-    font-size:12.5px;
-    font-weight:700;
-    cursor:pointer;
-    user-select:none;
-  }
-  .actions-toggle .chevron{
-    font-size:9px;
-    transition:transform 0.2s ease;
-    display:inline-block;
-  }
-  .actions-toggle .chevron.open{transform:rotate(180deg);}
-  .actions-menu{
-    display:none;
-    flex-direction:column;
-    gap:6px;
-    margin-top:8px;
-    padding:10px;
     border:1px solid var(--line);
     border-radius:12px;
-    background:var(--card);
+    padding:14px;
+    margin-top:24px;
   }
-  .actions-menu.open{display:flex;}
-  .actions-menu-item{
-    text-align:left;
-    padding:9px 12px;
-    border-radius:8px;
-    border:1px solid var(--line);
-    background:var(--paper);
-    color:var(--ink);
-    font-size:13px;
+  .add-item-title{
+    font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+    font-size:16px;
     font-weight:600;
-    cursor:pointer;
+    margin:0 0 10px;
   }
-  .export-btn{
-    margin-top:10px;
-    width:100%;
-    padding:10px 14px;
-    border-radius:10px;
-    border:1px solid var(--pantry);
-    background:var(--pantry-soft);
-    color:var(--pantry);
-    font-size:13.5px;
-    font-weight:700;
-    cursor:pointer;
-  }
-  .modal-overlay{
-    display:none;
-    position:fixed;
-    inset:0;
-    background:rgba(43,42,37,0.5);
-    z-index:50;
-    align-items:flex-end;
-    justify-content:center;
-  }
-  .modal-overlay.open{display:flex;}
-  .modal-sheet{
-    background:var(--card);
-    width:100%;
-    max-width:520px;
-    border-radius:16px 16px 0 0;
-    padding:18px 16px 20px;
-    max-height:80vh;
+  .add-item-form{
     display:flex;
     flex-direction:column;
+    gap:8px;
   }
-  .modal-title{
-    font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;
-    font-size:18px;
-    font-weight:600;
-    margin-bottom:4px;
-  }
-  .modal-sub{
-    font-size:12.5px;
-    color:var(--ink-soft);
-    margin-bottom:12px;
-    line-height:1.4;
-  }
-  .modal-textarea{
-    flex:1;
-    min-height:220px;
-    width:100%;
+  .add-item-form input, .add-item-form select{
     border:1px solid var(--line);
-    border-radius:10px;
-    padding:10px;
-    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-    font-size:12px;
-    line-height:1.5;
-    color:var(--ink);
-    background:var(--paper);
-    resize:vertical;
-  }
-  .modal-actions{
-    display:flex;
-    gap:10px;
-    margin-top:12px;
-  }
-  .modal-actions button{flex:1;}
-  .modal-copied{
-    text-align:center;
-    font-size:12.5px;
-    font-weight:600;
-    color:var(--pantry);
-    margin-top:8px;
-    height:16px;
-    opacity:0;
-    transition:opacity 0.2s ease;
-  }
-  .modal-copied.show{opacity:1;}
-  .review-row{
-    border:1px solid var(--line);
-    border-radius:10px;
-    padding:10px;
-    margin-bottom:8px;
-  }
-  .review-row .raw-name{
-    font-weight:700;
-    font-size:13.5px;
-    margin-bottom:4px;
-  }
-  .review-row .match-info{
-    font-size:12px;
-    color:var(--ink-soft);
-    margin-bottom:6px;
-  }
-  .review-row select, .review-row input[type=text]{
-    font-size:12.5px;
-    padding:6px 8px;
     border-radius:8px;
-    border:1px solid var(--line);
-    background:var(--paper);
+    padding:9px 10px;
+    font-size:14px;
     color:var(--ink);
-    margin-right:6px;
-    margin-bottom:6px;
+    background:var(--paper);
+    font-family:inherit;
   }
-  .review-row .new-badge{
-    display:inline-block;
-    font-size:11px;
+  .add-item-row{display:flex;gap:8px;}
+  .add-item-row > *{flex:1;}
+  .add-item-form button{
+    margin-top:4px;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid var(--pantry);
+    background:var(--pantry);
+    color:#fff;
+    font-size:14px;
     font-weight:700;
-    color:#8a5a1c;
-    background:#fbe9d0;
-    border-radius:6px;
-    padding:2px 6px;
-    margin-left:6px;
-  }
-  .review-row .match-badge{
-    display:inline-block;
-    font-size:11px;
-    font-weight:700;
-    color:var(--pantry);
-    background:var(--pantry-soft);
-    border-radius:6px;
-    padding:2px 6px;
-    margin-left:6px;
+    cursor:pointer;
   }
 </style>
 </head>
@@ -782,2272 +267,243 @@
 
 <header>
   <h1>Pantry Shelf</h1>
-  <p class="subtitle">The Clearys — pantry and freezer, at a glance</p>
-  <div class="search-wrap">
-    <input class="search" id="search" type="text" placeholder="Search items…" autocomplete="off">
-    <button class="search-clear" id="searchClear" type="button" aria-label="Clear search">✕</button>
-  </div>
+  <input class="search" id="search" type="text" placeholder="Search items…" autocomplete="off">
   <div class="chips">
     <div class="chip active" data-scope="all">All</div>
     <div class="chip" data-scope="pantry">Pantry</div>
     <div class="chip" data-scope="freezer">Freezer</div>
     <div class="chip" data-scope="fresh">Fresh</div>
-    <div class="chip" data-scope="meat">Meat</div>
   </div>
-  <div class="count-pill" id="countPill"></div>
-  <label class="hide-zero-toggle" id="hideZeroLabel">
-    <input type="checkbox" id="hideZeroToggle"> Hide items at 0
-  </label>
-  <label class="hide-zero-toggle" id="expiringLabel">
-    <input type="checkbox" id="expiringToggle"> Expiring within
-    <input type="number" id="expiringDaysInput" value="3" min="0" max="30" inputmode="numeric" style="width:40px;padding:2px 4px;border-radius:6px;border:1px solid var(--line);margin:0 2px;"> days
-  </label>
-  <div class="actions-toggle" id="actionsToggle">
-    <span>Actions</span><span class="chevron" id="actionsChevron">▾</span>
-  </div>
-  <div class="actions-menu" id="actionsMenu">
-    <button class="actions-menu-item" id="exportBtn" type="button">Export for Claude</button>
-    <button class="actions-menu-item" id="importBtn" type="button">Import Food</button>
-    <button class="actions-menu-item" id="mealsImportBtn" type="button">Update This Week's Meals</button>
-    <button class="actions-menu-item" id="freezeBtn" type="button">Freeze Snapshot (Full State)</button>
-    <button class="actions-menu-item" id="resetBaselineBtn" type="button">Mark Current Amounts as Correct</button>
-  </div>
+  <div class="sync-status" id="syncStatus"><span class="dot"></span><span id="syncText">Loading…</span></div>
 </header>
 
 <main id="main"></main>
 
-<div class="modal-overlay" id="exportOverlay">
-  <div class="modal-sheet">
-    <div class="modal-title">Export for Claude</div>
-    <div class="modal-sub">Copy this, then paste it to Claude in chat so it can update the master pantry sheet.</div>
-    <textarea class="modal-textarea" id="exportText" readonly></textarea>
-    <div class="modal-actions">
-      <button class="meal-btn" id="copyExportBtn" type="button">Copy</button>
-      <button class="meal-btn secondary" id="closeExportBtn" type="button">Close</button>
-    </div>
-    <div class="modal-copied" id="copiedNote">Copied!</div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="freezeOverlay">
-  <div class="modal-sheet">
-    <div class="modal-title">Freeze Snapshot (Full State)</div>
-    <div class="modal-sub">Full dump of every item's quantity, dates, and this week's meals — for rebuilding the artifact's starting point.</div>
-    <textarea class="modal-textarea" id="freezeText" readonly></textarea>
-    <div class="modal-actions">
-      <button class="meal-btn" id="copyFreezeBtn" type="button">Copy</button>
-      <button class="meal-btn secondary" id="closeFreezeBtn" type="button">Close</button>
-    </div>
-    <div class="modal-copied" id="freezeCopiedNote">Copied!</div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="mealExportOverlay">
-  <div class="modal-sheet">
-    <div class="modal-title" id="mealExportTitle">Export Meal</div>
-    <div class="modal-sub">Copy this and paste it to Claude to log just this meal to the Meals Log sheet.</div>
-    <textarea class="modal-textarea" id="mealExportText" readonly></textarea>
-    <div class="modal-actions">
-      <button class="meal-btn" id="copyMealExportBtn" type="button">Copy</button>
-      <button class="meal-btn secondary" id="closeMealExportBtn" type="button">Close</button>
-    </div>
-    <div class="modal-copied" id="mealExportCopiedNote">Copied!</div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="importOverlay">
-  <div class="modal-sheet">
-    <div id="importPasteStep">
-      <div class="modal-title">Import Food</div>
-      <div class="modal-sub">Paste your order below — one item per line. I'll match it against what's already here and flag anything new. Use a negative number (e.g. "-1 Item") to correct/decrease stock instead of adding it. Add <code>| Category</code> after any line to set its category yourself (e.g. "Blue Cheese | Condiments & Sauces"), or <code>| Section/Category</code> to set both.</div>
-      <textarea class="modal-textarea" id="importText" placeholder="2 Bananas&#10;Friendly Farms Milk (1 gal)&#10;Ken's Chunky Blue Cheese | Condiments & Sauces&#10;Medium Flour Tortillas | fresh/Bread & Tortillas"></textarea>
-      <label class="hide-zero-toggle" id="stampTodayLabel" style="margin-top:10px;">
-        <input type="checkbox" id="stampTodayToggle"> This just got delivered — mark Fresh items as bought today
-      </label>
-      <div class="modal-actions">
-        <button class="meal-btn" id="parseImportBtn" type="button">Import</button>
-        <button class="meal-btn secondary" id="closeImportBtn" type="button">Cancel</button>
-      </div>
-    </div>
-    <div id="importReviewStep" style="display:none; overflow-y:auto;">
-      <div class="modal-title">Review Import</div>
-      <div class="modal-sub">Matches are pre-filled. New items got a best guess — check the section/category before confirming.</div>
-      <div id="importReviewList"></div>
-      <div class="modal-actions">
-        <button class="meal-btn" id="confirmImportBtn" type="button">Confirm &amp; Apply</button>
-        <button class="meal-btn secondary" id="backImportBtn" type="button">Back</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="mealsImportOverlay">
-  <div class="modal-sheet">
-    <div id="mealsPasteStep">
-      <div class="modal-title">Update This Week's Meals</div>
-      <div class="modal-sub">Paste the meal plan Claude gave you — it replaces this week's meals below. Ingredients get auto-linked to pantry items where possible.</div>
-      <textarea class="modal-textarea" id="mealsImportText" placeholder="Day: Monday&#10;Name: Freezer Meatballs over Spaghetti&#10;Servings: 4&#10;Ingredients:&#10;- 1 bag frozen meatballs&#10;Steps:&#10;1. Boil spaghetti...&#10;Note: ...&#10;---&#10;Day: Tuesday&#10;..."></textarea>
-      <div class="modal-actions">
-        <button class="meal-btn" id="parseMealsBtn" type="button">Update</button>
-        <button class="meal-btn secondary" id="closeMealsImportBtn" type="button">Cancel</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="resetBaselineOverlay">
-  <div class="modal-sheet">
-    <div class="modal-title">Mark Current Amounts as Correct?</div>
-    <div class="modal-sub">This tells the app today's quantities are correct as-is, so a future "Export for Claude" won't report them as new changes. Use this after reconciling against your master sheet or a Freeze Snapshot — not after a normal day of cooking or using items.</div>
-    <div class="modal-actions">
-      <button class="meal-btn" id="confirmResetBaselineBtn" type="button">Yes, mark as correct</button>
-      <button class="meal-btn secondary" id="cancelResetBaselineBtn" type="button">Cancel</button>
-    </div>
-  </div>
-</div>
-
-
 <script>
-const DATA = {
-  pantry: [
-    {category:"Canned Tomatoes & Vegetables", items:[
-      ["Hunt's No Salt Added Crushed Tomatoes",1],["Great Value Tomato Paste",4],
-      ["Great Value Diced Tomatoes",0],["Happy Harvest Tomato Sauce",1],
-      ["Happy Family Tomato Sauce (small can)",1],["Great Value Diced Jalapeño Peppers",1],
-      ["Great Value Green Chile Enchilada Sauce",0],["Tuscan Garden Artichoke Hearts",1],
-      ["Great Value Organic Lentils",0],["Great Value Traditional Refried Beans",0],
-      ["Whole Pepperoncini (jar)",1],["Great Value Banana Pepper Rings, Mild",1],
-      ["Mezzetta Pickled Red Onions",1],["Vlasic Sweet Relish",2],
-      ["Great Value Fruit Cocktail, No Sugar Added",1],["Great Value Mandarin Oranges, No Sugar Added",1],
-      ["Classico Pizza Sauce",1],["Rao's Creamy Tomato Sauce",1],
-      ["Specialty Kalamata Olives",1],["Tops Sliced Black Olives",1],
-      ["Pickled Jalapeños",1]
-    ]},
-    {category:"Soups & Broths", items:[
-      ["Campbell's Cream of Chicken Soup",1],["Campbell's Tomato Soup",1],
-      ["Campbell's Cream of Mushroom Soup",1],["Campbell's Chicken & Stars Soup",2],
-      ["Pacific Foods Organic Chicken & Wild Rice Soup",1],["Rao's Vegetable Minestrone Soup",1],
-      ["Great Value Chicken Broth (carton)",1.25],["Great Value Beef Broth (carton)",1]
-    ]},
-    {category:"Canned Protein", items:[
-      ["Great Value Chunk Light Tuna in Water",9],["Brookdale Chicken Breast, canned",2]
-    ]},
-    {category:"Condiments & Sauces", items:[
-      ["Ocean Spray Jellied Cranberry Sauce",1],["Burman's Chili Sauce",1],
-      ["Fly By Jing Zhong Sauce",1],["Mike's Hot Honey",1],
-      ["Bettergoods Strawberry Fruit Spread",1],["Kikkoman Soy Sauce, 35% Less Sodium",1],
-      ["Primal Kitchen Ranch Dressing, Avocado Oil",1],["Great Value Honey",1],
-      ["Specialty Acacia Honey",1],["Great Value Non-Pareil Capers",1],
-      ["Ken's Chunky Blue Cheese",1]
-    ]},
-    {category:"Baking & Pantry Staples", items:[
-      ["Great Value Plain Bread Crumbs",3],["Grandma's Molasses",1],
-      ["Baker's Corner Baking Cocoa",1],["Tops 100% Pure Pumpkin",1],
-      ["Baker's Corner Pumpkin (pie filling)",1],["Jiffy Corn Muffin Mix",1],
-      ["Great Value Instant Mashed Potatoes",1]
-    ]},
-    {category:"Pasta & Grains", items:[
-      ["Barilla Pastina",1],["Banza Penne (chickpea)",1],
-      ["Great Value Premium Shells & Cheese, Original",2],["Great Value Whole Wheat Penne",1],
-      ["Great Value Wide Egg Noodles",1],["De Cecco Spaghetti no. 12",0.5],
-      ["Great Value Whole Wheat Linguine",1],["Great Value Organic White Quinoa",1]
-    ]},
-    {category:"Gravy, Bouillon & Seasoning Mixes", items:[
-      ["Great Value Chicken Gravy Mix",2],["Simply Organic Brown Gravy Mix",1],
-      ["Wyler's Chicken Bouillon Cubes",1],["Wyler's Beef Bouillon Cubes",1],
-      ["Kinder's Garlic & Herb Chicken Seasoning",1],["Great Value Nutritional Yeast Flakes",1]
-    ]},
-    {category:"Snacks & Nuts", items:[
-      ["Great Value Roasted Almonds, Lightly Salted",1],["Great Value Sunflower Kernels, Roasted & Salted",2],
-      ["Great Value Chopped Walnuts",1],["Kettle Seasoned Croutons",1]
-    ]},
-    {category:"Dried Fruit", items:[
-      ["Southern Grove Dried Sweetened Cranberries",1],["Whole Dried Cherries (Ugly brand)",1],
-      ["Wonderful Sweetened Dried Cherries",1],["Luxardo Maraschino Cherries",1],
-      ["Wegmans Organic Dried Mango Slices, No Sugar Added",1]
-    ]},
-    {category:"Plant-Based & Misc Shelf-Stable", items:[
-      ["Earth Grown Vegan Southwest Burrito Bowl",1],["Earth Grown Vegan Pad Thai",1],
-      ["Smucker's Natural Peanut Butter",1],["Nature Valley Protein Granola, Oats & Dark Chocolate",1]
-    ]},
-    {category:"Pantry Additions (7/19 order)", items:[
-      ["General Mills Cinnamon Toast Crunch",1],["Casa Mamita Medium Salsa",1],
-      ["Simply Nature Organic Tomato Basil Pasta Sauce",1],["Boulder 6 Roll Paper Towels - 110 Sheets",1]
-    ]}
-  ],
-  freezer: [
-    {category:"Prepared / Ready Meals", items:[
-      ["Whole & Simple Southwestern Style Chicken Quinoa Bowl",1],["Chicken stew (bag)",1],
-      ["Pulled BBQ chicken (bag)",2]
-    ]},
-    {category:"Meat & Poultry", items:[
-      ["Great Value Famous Chicken Fillets (breaded, raw)",1],["Great Value Fully Cooked Chicken Nuggets (2 lb)",1],
-      ["Great Value Homestyle Meatballs, Fully Cooked",0.25],["Red's Turkey Sausage Breakfast Burritos (4 ct)",1],
-      ["Butterball Turkey Breakfast Sausage Patties, Fully Cooked (8 ct)",1]
-    ]},
-    {category:"Meatless / Vegetarian", items:[
-      ["Earth Grown Vegan Veggie Burgers",2]
-    ]},
-    {category:"Fruit", items:[
-      ["Outshine No Sugar Added Fruit Bars (12ct)",1],["Great Value Berry Medley",1],
-      ["Great Value Mixed Fruit",1],["Strawberries (bag)",1],
-      ["Grapes (bag)",1],["Bananas (bag)",1],
-      ["Ocean Spray Fresh Premium Cranberries",1]
-    ]},
-    {category:"Vegetables", items:[
-      ["Great Value Super Sweet Corn",0],["Kale (bag)",1],
-      ["Garlic scapes (bag)",1],["Diced red onion (bag)",1],
-      ["Ginger (bag)",1]
-    ]},
-    {category:"Grains & Starches", items:[
-      ["Bettergoods Organic Jasmine Rice, steamable (2 pouches)",1],["Rolled pie crust (bag)",1]
-    ]},
-    {category:"Baked Goods", items:[
-      ["Veggies Made Great Homestyle Cornbread (6 ct)",0],["Veggies Made Great Blueberry Oat Muffins (6 ct)",1],
-      ["Specially Selected Blueberry Mini Scones (12 ct)",1],["Bettergoods Protein Cinnamon French Toast Sticks",1],
-      ["Mini bagels (bag)",1],["Bread, loaves",2],
-      ["Hot dog buns",1]
-    ]},
-    {category:"Sauces & Prepped Ingredients", items:[
-      ["Spaghetti sauce (bag)",1]
-    ]},
-    {category:"Desserts", items:[
-      ["Vanilla ice cream",1],["Macaroons",1]
-    ]}
-  ],
-  fresh: [
-    {category:"Meat & Poultry", items:[
-      ["Ground Mild Italian Sausage",0],["Simply Nature Organic Chicken Breasts (1.0 lb)",0],
-      ["Fresh Atlantic Salmon Side (2.0 lb)",0],["Parkview Turkey Polska Kielbasa",1],
-      ["Sahlen's Hotdogs",1],["Pepperoni Stick",1],
-      ["Deli Ham",1],["Deli Turkey",1]
-    ]},
-    {category:"Produce", items:[
-      ["Lemons Bag",0.75],["Little Salad Bar Spinach",1],
-      ["Zucchini Package (1.5 lb)",1],["Organic Broccoli",1],
-      ["Bananas (8 ct)",1],["Gala Apples Bag",1]
-    ]},
-    {category:"Dairy", items:[
-      ["Friendly Farms Milk (1 gal)",1],["Friendly Farms Nonfat Vanilla Blended Greek Yogurt",1],
-      ["Countryside Creamery Spreadable Butter with Olive Oil and Sea Salt",1],["Eggs (dozen)",1],
-      ["Planet Oat French Vanilla Oat Milk Creamer",3],["Bag Mozzarella Cheese",1],
-      ["Bag Cheddar",1],["Block Sharp Cheddar",1],
-      ["Block Cream Cheese",1],["Cream Cheese Spread",1],
-      ["American Cheese",1],["Honey Cinnamon Butter",1],
-      ["Box Kids Yogurt",1],["Individual Light Greek Vanilla Yogurt",2],
-      ["Large Light Greek Vanilla Yogurt",1],["Heavy Whipping Cream",1],
-      ["Bag Cotija Cheese",1],["String Cheese",1],
-      ["Block Colby Jack",1],["Block Cheddar",1]
-    ]},
-    {category:"Bread & Baked Goods", items:[
-      ["Small Flour Tortillas",1],["Medium Flour Tortillas",1]
-    ]}
-  ]
-};
+// ==== Backend connection ====
+// Paste your Apps Script Web App /exec URL here (see Code.gs setup notes).
+const API_URL = "https://script.google.com/macros/s/AKfycbyHdxJs_bEpXYqxNZwYqGPH58oP8C-MgKfHFzLdLW43ceSs48z4VdDDADJIPBF4IcuasA/exec";
 
-// ---- Persistent storage backend (Google Sheet via Apps Script) ----
-// This replaces Claude.ai's built-in artifact `window.storage` with calls to
-// a tiny Apps Script Web App bound to your Google Sheet, so this page works
-// as a normal standalone website (GitHub Pages, etc.) with real multi-device
-// sync — no Claude artifact viewer involved for day-to-day use.
-//
-// Paste the /exec URL from your Apps Script deployment below. See Code.gs
-// and the setup instructions for how to create it.
-const APP_STORAGE_URL = "https://script.google.com/macros/s/AKfycbyHdxJs_bEpXYqxNZwYqGPH58oP8C-MgKfHFzLdLW43ceSs48z4VdDDADJIPBF4IcuasA/exec";
-
-window.storage = {
-  async get(key, _shared){
-    const res = await fetch(APP_STORAGE_URL + "?key=" + encodeURIComponent(key));
-    if(!res.ok) throw new Error("storage get failed: " + res.status);
-    const data = await res.json();
-    if(data.value === null || data.value === undefined) return null;
-    return {value: data.value};
-  },
-  async set(key, value, _shared){
-    // IMPORTANT: Content-Type must stay "text/plain" — using "application/json"
-    // here triggers a CORS preflight (OPTIONS request) that Apps Script Web
-    // Apps can't answer, which silently breaks every save. text/plain keeps
-    // this a "simple request" so the browser skips preflight entirely; the
-    // body is still valid JSON and is parsed as JSON on the Apps Script side.
-    const res = await fetch(APP_STORAGE_URL, {
-      method: "POST",
-      headers: {"Content-Type": "text/plain;charset=utf-8"},
-      body: JSON.stringify({key, value})
-    });
-    if(!res.ok) throw new Error("storage set failed: " + res.status);
-    const data = await res.json();
-    return data.success ? {ok:true} : null;
-  }
-};
-
-// ---- Instacart Import: fuzzy matching + auto-categorization ----
-
-// Words that don't help distinguish products — stripped before comparing names.
-const NAME_STOPWORDS = new Set([
-  "the","a","an","of","with","and","or","great","value","simply","nature",
-  "organic","fresh","bettergoods","specialty","no","added","sugar","original",
-  "bag","box","jar","can","carton","pouch","pouches","ct","oz","lb","lbs"
-]);
-
-function tokenize(name){
-  return name.toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .split(/\s+/)
-    .filter(t => t.length > 1 && !NAME_STOPWORDS.has(t));
+async function apiGet(resource){
+  const res = await fetch(API_URL + "?resource=" + encodeURIComponent(resource));
+  if(!res.ok) throw new Error("GET " + resource + " failed: " + res.status);
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
+  return data;
 }
 
-// Jaccard similarity over token sets — cheap, dependency-free, good enough for
-// grocery-name matching ("Simply Nature Organic Chicken Breasts" vs
-// "Organic Chicken Breast (1lb)" both reduce to {chicken, breast(s)}).
-function nameSimilarity(a, b){
-  const ta = new Set(tokenize(a));
-  const tb = new Set(tokenize(b));
-  if(ta.size === 0 || tb.size === 0) return 0;
-  let intersection = 0;
-  ta.forEach(t => { if(tb.has(t)) intersection++; });
-  const union = new Set([...ta, ...tb]).size;
-  return intersection / union;
-}
-
-const MATCH_HIGH = 0.6;   // auto-select this match, still shown for confirmation
-const MATCH_MED = 0.25;   // suggest this match, but default to "confirm" not silent
-
-// Returns every existing item across pantry/freezer/fresh (DATA + customItems already
-// merged into DATA by this point) as {kind, category, item}.
-function allExistingItems(){
-  const out = [];
-  ["pantry","freezer","fresh"].forEach(kind => {
-    DATA[kind].forEach(g => g.items.forEach(it => out.push({kind, category:g.category, item:it[0]})));
+async function apiPost(body){
+  // Content-Type must stay text/plain — application/json triggers a CORS
+  // preflight (OPTIONS request) that Apps Script Web Apps can't answer,
+  // which would silently break every save. text/plain keeps this a
+  // "simple request" so the browser skips preflight; the body is still
+  // valid JSON and is parsed as JSON on the Apps Script side.
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: {"Content-Type": "text/plain;charset=utf-8"},
+    body: JSON.stringify(body)
   });
-  return out;
+  if(!res.ok) throw new Error("POST failed: " + res.status);
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
+  return data;
 }
 
-// Strips a leading "2 lb ", "1.5 cups ", "1 box " etc. and a trailing "(fresh)"/
-// "(frozen)"/"(freezer)" qualifier, so a pasted ingredient line like
-// "1 box De Cecco Spaghetti no. 12" can still exact-match "De Cecco Spaghetti no. 12".
-function normalizeForExactMatch(s){
-  let t = s.trim();
-  t = t.replace(/^\d+(\.\d+)?\s*(cups?|cans?|jars?|bags?|boxes?|lbs?|pounds?|oz|ounces?|cartons?|pouches?|ct)?\s+/i, "");
-  t = t.replace(/\s*\((fresh|frozen|freezer)\)\s*$/i, "");
-  return t.trim().toLowerCase();
-}
-
-// Best existing-item match for a pasted line, or null if nothing scores above MATCH_MED.
-function findBestMatch(name){
-  // Exact match (after stripping qty/unit prefixes and freshness qualifiers) always
-  // wins outright — no fuzzy scoring involved, so a precise pantry name can never
-  // lose to an unrelated item that happens to share fewer, more "concentrated"
-  // tokens (e.g. the "spaghetti" vs "Spaghetti sauce (bag)" collision this prevents).
-  const normalized = normalizeForExactMatch(name);
-  const exact = allExistingItems().find(entry => entry.item.trim().toLowerCase() === normalized);
-  if(exact) return Object.assign({score:1}, exact);
-
-  let best = null, bestScore = 0;
-  allExistingItems().forEach(entry => {
-    const score = nameSimilarity(name, entry.item);
-    if(score > bestScore){ bestScore = score; best = entry; }
-  });
-  if(!best || bestScore < MATCH_MED) return null;
-  return Object.assign({score:bestScore}, best);
-}
-
-// Keyword -> {section, category} guesses for genuinely new items. Order matters —
-// first matching keyword wins. Falls back to pantry/"Uncategorized" if nothing hits.
-const GUESS_RULES = [
-  {kws:["frozen","freezer"], section:"freezer", category:"Prepared / Ready Meals"},
-  {kws:["chicken","beef","turkey","pork","sausage","bacon","salmon","fish","shrimp","steak","meatball","ham"], section:"fresh", category:"Meat & Poultry"},
-  {kws:["milk","yogurt","cheese","butter","cream","egg"], section:"fresh", category:"Dairy"},
-  {kws:["lettuce","spinach","kale","tomato","apple","banana","onion","pepper","broccoli","zucchini","lemon","potato","carrot","grape","berry","cucumber","avocado"], section:"fresh", category:"Produce"},
-  {kws:["soup","broth","stock"], section:"pantry", category:"Soups & Broths"},
-  {kws:["pasta","spaghetti","penne","noodle","rice","quinoa"], section:"pantry", category:"Pasta & Grains"},
-  {kws:["tuna","canned chicken","spam"], section:"pantry", category:"Canned Protein"},
-  {kws:["sauce","ketchup","mustard","mayo","dressing","honey","syrup"], section:"pantry", category:"Condiments & Sauces"},
-  {kws:["cracker","chip","pretzel","almond","walnut","cashew","popcorn"], section:"pantry", category:"Snacks & Nuts"},
-  {kws:["ice cream","cookie","cake","brownie","macaroon"], section:"freezer", category:"Desserts"},
-  {kws:["bread","bagel","muffin","scone","waffle","pancake"], section:"freezer", category:"Baked Goods"},
-];
-
-// A single closest-item match is noisy: a short name like "Spaghetti sauce
-// (bag)" scores artificially high on Jaccard similarity against "Great Value
-// Marinara Sauce" (they share one token out of very few total), even though
-// it's the wrong aisle entirely. Aggregating similarity across every item in
-// a category smooths this out — Canned Tomatoes & Vegetables has five
-// different jarred sauces that each share something with "marinara sauce",
-// so its total comfortably beats any single coincidental match elsewhere.
-const CATEGORY_GUESS_MIN = 0.15;
-
-function guessItemPlacement(name){
-  // Curated keyword rules go first — they're deliberately written for common,
-  // unambiguous cases (milk/yogurt/cheese -> Dairy, etc.) and shouldn't be
-  // overridden by a coincidental single-token overlap in the fuzzy scoring
-  // below (e.g. "Ken's Chunky Blue Cheese" sharing only the word "cheese"
-  // with "Great Value Premium Shells & Cheese" was enough to falsely win
-  // Pasta & Grains before this reordering).
-  const lower = name.toLowerCase();
-  for(const rule of GUESS_RULES){
-    if(rule.kws.some(kw => lower.includes(kw))){
-      return {section: rule.section, category: rule.category};
-    }
-  }
-
-  const categoryScores = {}; // "kind|category" -> summed similarity
-  allExistingItems().forEach(entry => {
-    const score = nameSimilarity(name, entry.item);
-    if(score <= 0) return;
-    const catKey = entry.kind + "|" + entry.category;
-    categoryScores[catKey] = (categoryScores[catKey] || 0) + score;
-  });
-
-  let bestCatKey = null, bestTotal = 0;
-  Object.keys(categoryScores).forEach(catKey => {
-    if(categoryScores[catKey] > bestTotal){ bestTotal = categoryScores[catKey]; bestCatKey = catKey; }
-  });
-
-  if(bestCatKey && bestTotal >= CATEGORY_GUESS_MIN){
-    const sep = bestCatKey.indexOf("|");
-    return {section: bestCatKey.slice(0, sep), category: bestCatKey.slice(sep + 1)};
-  }
-
-  return {section:"pantry", category:"Uncategorized"};
-}
-
-// Adds a brand-new item to DATA in memory (so all existing render/qty code just
-// works) if it isn't already present. Safe to call multiple times / on re-render.
-function mergeCustomItemIntoData(kind, category, itemName){
-  let group = DATA[kind].find(g => g.category === category);
-  if(!group){
-    group = {category, items:[]};
-    DATA[kind].push(group);
-  }
-  if(!group.items.some(it => it[0] === itemName)){
-    group.items.push([itemName, 0]);
-  }
-}
-
-// Parses a pasted Instacart order into {raw, name, qty} lines. Handles common
-// formats: "2 Bananas", "Bananas x2", "Bananas — $3.29", or just a bare item name
-// (defaults to qty 1). Price, if present, is stripped and ignored for matching.
-// Splits an optional trailing "| Category" or "| Section/Category" override off
-// a pasted line before the normal qty/name parsing runs, e.g.:
-//   "Ken's Chunky Blue Cheese | Condiments & Sauces"   -> section inferred
-//   "Medium Flour Tortillas | fresh/Bread & Tortillas" -> both given explicitly
-function splitCategoryOverride(rawLine){
-  const pipeIdx = rawLine.indexOf("|");
-  if(pipeIdx === -1) return {mainPart: rawLine, sectionOverride: null, categoryOverride: null};
-  const mainPart = rawLine.slice(0, pipeIdx).trim();
-  const overridePart = rawLine.slice(pipeIdx + 1).trim();
-  if(!overridePart) return {mainPart, sectionOverride: null, categoryOverride: null};
-  const slashIdx = overridePart.indexOf("/");
-  if(slashIdx !== -1){
-    const sec = overridePart.slice(0, slashIdx).trim().toLowerCase();
-    const cat = overridePart.slice(slashIdx + 1).trim();
-    const validSection = ALL_SECTIONS.includes(sec) ? sec : null;
-    return {mainPart, sectionOverride: validSection, categoryOverride: cat || null};
-  }
-  return {mainPart, sectionOverride: null, categoryOverride: overridePart};
-}
-
-// Resolves a typed category override to a concrete {section, category}. If the
-// text matches an existing category (case-insensitive), reuses its canonical
-// spelling and section (or the explicitly given section, if any). If it
-// doesn't match anything, treats it as a genuinely new category — using the
-// given section, or defaulting to pantry if none was specified. When a
-// category name exists in more than one section (e.g. "Meat & Poultry" is
-// both a Freezer and a Fresh category) and no section was given, pantry wins
-// first, then freezer, then fresh — matching ALL_SECTIONS order.
-function resolveCategoryOverride(sectionOverride, categoryOverride){
-  const wantedLower = categoryOverride.toLowerCase();
-  for(const s of ALL_SECTIONS){
-    if(sectionOverride && s !== sectionOverride) continue;
-    const cats = ALL_CATEGORIES_BY_SECTION[s] || [];
-    const found = cats.find(c => c.toLowerCase() === wantedLower);
-    if(found) return {section: s, category: found};
-  }
-  return {section: sectionOverride || "pantry", category: categoryOverride};
-}
-
-function parseInstacartText(text){
-  return text.split("\n")
-    .map(l => l.trim())
-    .filter(l => l.length > 0)
-    .map(rawLine => {
-      const {mainPart, sectionOverride, categoryOverride} = splitCategoryOverride(rawLine);
-      let line = mainPart.replace(/\$\s?\d+(\.\d{1,2})?/g, "").trim();
-      let qty = 1;
-      // Allow an optional leading minus and decimals (e.g. "-1 Item", "-0.25 Item")
-      // so a paste can also *decrease* stock — useful for reconciling against
-      // a master sheet, not just adding new purchases.
-      let qtyMatch = line.match(/^(-?\d+(?:\.\d+)?)\s*[x×]?\s+/i) || line.match(/\s*[x×]\s*(-?\d+(?:\.\d+)?)$/i);
-      if(qtyMatch){
-        qty = parseFloat(qtyMatch[1]);
-        if(!Number.isFinite(qty)) qty = 1;
-        line = line.replace(qtyMatch[0], "").trim();
-      }
-      line = line.replace(/[-–—]\s*$/, "").trim();
-      let placementOverride = null;
-      if(categoryOverride){
-        placementOverride = resolveCategoryOverride(sectionOverride, categoryOverride);
-      }
-      return {raw: rawLine, name: line, qty, placementOverride};
-    });
-}
-
-// ---- Weekly meal plan import ----
-// Expected paste format (this is what Claude outputs when it finalizes a weekly
-// meal plan — round-trips cleanly with buildExportText's RECIPES section):
-//
-//   Day: Monday
-//   Name: Freezer Meatballs over Spaghetti (Rao's Sauce)
-//   Servings: 4
-//   Ingredients:
-//   - 1 bag frozen fully-cooked meatballs
-//   - 1 box spaghetti
-//   Steps:
-//   1. Boil spaghetti per package directions.
-//   2. Heat meatballs...
-//   Note: Lightest veggie night of the week.
-//   ---
-//   Day: Tuesday
-//   ...
-function parseMealPlanText(text){
-  const lines = text.split("\n").map(l => l.trimEnd());
-  const meals = [];
-  let current = null;
-  let section = null; // "ingredients" | "steps" | null
-
-  function pushCurrent(){
-    if(current) meals.push(current);
-  }
-
-  lines.forEach(rawLine => {
-    const line = rawLine.trim();
-    if(!line || line === "---") { if(line === "---"){ } return; }
-    const m = (label) => line.toLowerCase().startsWith(label.toLowerCase() + ":");
-    const valueAfter = (label) => line.slice(label.length + 1).trim();
-
-    if(m("Day")){
-      pushCurrent();
-      current = {day: valueAfter("Day"), name:"", ingredients:[], recipe:{servings:"", ingredients:[], steps:[], note:""}};
-      section = null;
-    } else if(!current){
-      // ignore stray lines before the first "Day:"
-    } else if(m("Name")){
-      current.name = valueAfter("Name");
-    } else if(m("Servings")){
-      current.recipe.servings = valueAfter("Servings");
-    } else if(m("Ingredients")){
-      section = "ingredients";
-    } else if(m("Steps")){
-      section = "steps";
-    } else if(m("Note")){
-      current.recipe.note = valueAfter("Note");
-      section = null;
-    } else if(section === "ingredients" && /^[-•]\s*/.test(line)){
-      current.recipe.ingredients.push(line.replace(/^[-•]\s*/, ""));
-    } else if(section === "steps" && /^\d+[.)]\s*/.test(line)){
-      current.recipe.steps.push(line.replace(/^\d+[.)]\s*/, ""));
-    }
-  });
-  pushCurrent();
-
-  // Best-effort auto-link each recipe ingredient to an existing pantry/freezer/fresh
-  // item (for the one-tap "mark cooked" deduction). Ingredients that don't match
-  // anything well still display fine in the recipe — they just won't auto-deduct.
-  meals.forEach(meal => {
-    meal.ingredients = [];
-    meal.recipe.ingredients.forEach(ingText => {
-      const best = findBestMatch(ingText);
-      if(best && best.score >= MATCH_MED){
-        meal.ingredients.push({
-          key: best.kind + "|" + best.category + "|" + best.item,
-          label: best.item,
-          def: 1
-        });
-      }
-    });
-  });
-
-  return meals;
-}
-// Matches the actual Google Calendar dinner plan (the real ground truth).
-// Each ingredient references a pantry/freezer/fresh key exactly as built above.
-const MEALS = [
-  {
-    day:"Monday", name:"Sheet-Pan Salmon with Green Beans & Rice",
-    ingredients:[
-      {key:"fresh|Meat & Poultry|Fresh Atlantic Salmon Side (2.0 lb)", label:"Salmon side", def:1},
-      {key:"freezer|Grains & Starches|Bettergoods Organic Jasmine Rice, steamable (2 pouches)", label:"Jasmine rice pouch", def:1}
-    ],
-    recipe:{
-      servings:"4",
-      ingredients:[
-        "1 Fresh Atlantic Salmon Side",
-        "1 bag Green Beans (fresh or frozen)",
-        "1 pouch Bettergoods Organic Jasmine Rice (steamable)",
-        "Lemon"
-      ],
-      steps:[
-        "Preheat oven to 400°F.",
-        "Toss green beans with a little oil, salt, and pepper; spread on one side of a sheet pan.",
-        "Pat salmon dry, season with salt and pepper, place skin-side down on the other side of the pan.",
-        "Roast 12-15 min until salmon flakes easily and green beans are tender-crisp.",
-        "Steam the jasmine rice pouch per package directions.",
-        "Plate salmon and green beans over rice, finish with a squeeze of lemon."
-      ],
-      note:""
-    }
-  },
-  {
-    day:"Tuesday", name:"Kielbasa, White Bean & Kale Stew",
-    ingredients:[
-      {key:"fresh|Meat & Poultry|Parkview Turkey Polska Kielbasa", label:"Kielbasa", def:1},
-      {key:"pantry|Soups & Broths|Great Value Chicken Broth (carton)", label:"Chicken broth", def:0.5},
-      {key:"freezer|Vegetables|Kale (bag)", label:"Kale", def:0.5},
-      {key:"freezer|Vegetables|Diced red onion (bag)", label:"Diced onion", def:0.5},
-      {key:"freezer|Vegetables|Garlic scapes (bag)", label:"Garlic scapes", def:0.5}
-    ],
-    recipe:{
-      servings:"4",
-      ingredients:[
-        "1 Parkview Turkey Polska Kielbasa, sliced",
-        "1-2 cans white beans (cannellini or great northern)",
-        "2 cups Great Value Chicken Broth (carton)",
-        "1-1.5 cups Kale (bag)",
-        "Diced red onion (bag)",
-        "Garlic scapes (bag)"
-      ],
-      steps:[
-        "Add sliced kielbasa, white beans, broth, onion, and garlic scapes to the crockpot.",
-        "Cook on low ~6-7 hours.",
-        "Stir in kale during the last 15-20 min until wilted.",
-        "Season with salt and pepper; serve hot."
-      ],
-      note:""
-    }
-  },
-  {
-    day:"Wednesday", name:"Chicken Parm Fillets over Penne",
-    ingredients:[
-      {key:"freezer|Meat & Poultry|Great Value Famous Chicken Fillets (breaded, raw)", label:"Chicken fillets", def:1},
-      {key:"pantry|Canned Tomatoes & Vegetables|Rao's Creamy Tomato Sauce", label:"Tomato sauce", def:0.5},
-      {key:"fresh|Dairy|Bag Mozzarella Cheese", label:"Mozzarella", def:0.5},
-      {key:"pantry|Pasta & Grains|Great Value Whole Wheat Penne", label:"Penne", def:1}
-    ],
-    recipe:{
-      servings:"4",
-      ingredients:[
-        "1 box Great Value Famous Chicken Fillets (breaded, raw)",
-        "1 jar Rao's Creamy Tomato Sauce (or Great Value Marinara)",
-        "1 cup Bag Mozzarella Cheese",
-        "1 box Great Value Whole Wheat Penne"
-      ],
-      steps:[
-        "Bake chicken fillets per package directions until crisp and cooked through.",
-        "Boil penne per package directions; drain.",
-        "Warm the tomato sauce in a saucepan.",
-        "Top baked fillets with sauce and mozzarella; return to oven briefly to melt cheese.",
-        "Serve fillets over penne with extra sauce."
-      ],
-      note:""
-    }
-  },
-  {
-    day:"Thursday", name:"Pulled BBQ Chicken Bowls",
-    ingredients:[
-      {key:"freezer|Prepared / Ready Meals|Pulled BBQ chicken (bag)", label:"Pulled BBQ chicken", def:1},
-      {key:"freezer|Grains & Starches|Bettergoods Organic Jasmine Rice, steamable (2 pouches)", label:"Jasmine rice pouch", def:1},
-      {key:"freezer|Baked Goods|Hot dog buns", label:"Hot dog buns", def:0.5}
-    ],
-    recipe:{
-      servings:"4",
-      ingredients:[
-        "1 bag Pulled BBQ chicken (frozen)",
-        "1 pouch Bettergoods Organic Jasmine Rice (steamable)",
-        "Hot dog buns (optional, if serving as sandwiches instead)"
-      ],
-      steps:[
-        "Heat pulled BBQ chicken through — crockpot on low ~2-3 hrs, or stovetop/microwave if short on time.",
-        "Steam the jasmine rice pouch per package directions.",
-        "Serve chicken over rice, or on buns as sandwiches."
-      ],
-      note:""
-    }
-  },
-  {
-    day:"Friday", name:"Tuna Noodle Bake",
-    ingredients:[
-      {key:"pantry|Canned Protein|Great Value Chunk Light Tuna in Water", label:"Tuna", def:2},
-      {key:"pantry|Pasta & Grains|Great Value Wide Egg Noodles", label:"Egg noodles", def:1},
-      {key:"pantry|Soups & Broths|Campbell's Cream of Mushroom Soup", label:"Cream of mushroom soup", def:1},
-      {key:"pantry|Baking & Pantry Staples|Great Value Plain Bread Crumbs", label:"Bread crumbs", def:0.5}
-    ],
-    recipe:{
-      servings:"4",
-      ingredients:[
-        "2 cans Chunk Light Tuna, drained",
-        "1 bag Wide Egg Noodles",
-        "1 can Campbell's Cream of Mushroom Soup",
-        "Bread crumbs, for topping",
-        "1 bag frozen peas (optional)"
-      ],
-      steps:[
-        "Boil egg noodles per package directions; drain.",
-        "Mix noodles, tuna, cream of mushroom soup, and peas (if using) in a baking dish.",
-        "Top with bread crumbs.",
-        "Bake at 350°F for ~20-25 min until bubbly and topping is golden."
-      ],
-      note:""
-    }
-  }
-];
-
-let activeScopes = new Set(["all"]);
+// ==== State ====
+let items = [];   // [{section, category, item, qty}]
+let meals = [];   // [{day, meal, cooked}]
+let activeScope = "all";
 let query = "";
-let hideZero = false;
-let expiringOnly = false;
-let expiringDays = 3;
-let qtyState = {};
-let storageWorking = true;
-let expandedMeal = null; // day currently showing its checklist
-let expandedRecipe = null; // day currently showing its recipe
-let editingNoteDay = null; // day currently showing its note editor
-let mealsCollapsed = false; // whether "This Week's Meals" section is collapsed
-let collapsedCategories = new Set(); // "kind|category" keys currently collapsed
-let editingQtyKey = null; // item key currently showing the fractional-quantity editor
-let editingExpKey = null; // item key currently showing the expiration-date editor
-let editingOpenedKey = null; // item key currently showing the "opened on" date editor (Fresh items)
-let editingPurchasedKey = null; // item key currently showing the "bought on" date editor (Fresh items)
-const STORAGE_KEY = "pantry-shelf-quantities";
-const CUSTOM_ITEMS_KEY = "pantry-shelf-custom-items";
-const MEALS_KEY = "pantry-shelf-meals";
-const MEALS_VERSION_KEY = "pantry-shelf-meals-version";
-const EXPORT_BASELINE_KEY = "pantry-shelf-export-baseline";
-const EXPORT_BASELINE_VERSION_KEY = "pantry-shelf-export-baseline-version";
-// Bump this string every time the hardcoded DATA/SEED_STATE defaults get
-// rebuilt from a Freeze Snapshot. A persisted baseline saved under an older
-// version is stale by definition — it predates whatever's now baked into the
-// file's own defaults — so it gets ignored rather than silently re-reporting
-// already-known items as "new."
-const SEED_VERSION = "2026-07-26-freeze2";
-const EXPORTED_MEALS_KEY = "pantry-shelf-exported-meals";
-let exportedMealDays = []; // day names already included in a copied export this week
-let customItems = []; // [{kind, category, item}] — items added via Instacart import, not baked into DATA
-// Once "Mark Current Amounts as Correct" (or a completed Export copy) has
-// reset the baseline in THIS session, that local reset is authoritative for
-// the rest of the session — loadSharedState() will not re-fetch or overwrite
-// BASELINE_QTY again. Without this, a routine 20s background poll could hand
-// back a still-stale pre-reset value (a real read-after-write lag, not an
-// error — so the earlier failed-fetch retry logic doesn't catch it) and
-// silently undo a reset the person just explicitly confirmed.
-let baselineLockedThisSession = false;
-const MEALS_COOKED_PREFIX = "meal-cooked|";
-// Hit rating and notes live in qtyState (STORAGE_KEY) rather than on the MEALS
-// array itself (MEALS_KEY) — confirmed the former persists reliably across a
-// hard refresh while the latter, for reasons not fully pinned down, sometimes
-// didn't. Piggybacking on the already-reliable path sidesteps the mystery
-// rather than chasing it further.
-const MEAL_HIT_PREFIX = "meal-hit|";
-const MEAL_NOTE_PREFIX = "meal-note|";
-const MEALS_AMOUNTS_PREFIX = "meal-amounts|";
-const OPENED_PREFIX = "opened|";
-const OPENED_COUNT_PREFIX = "openedct|"; // how many units of a multi-unit item are currently open
-const EXP_PREFIX = "exp|";
-const PURCHASE_PREFIX = "purchased|";
-const BATCH_PREFIX = "batches|";
-// Items where "how old is THIS one" matters enough to track separate cartons/
-// gallons individually, each with its own added date + optional expiration —
-// rather than one shared quantity + date for the whole item. Keep this list
-// short; everything else stays as the simple single-number model.
-const BATCH_TRACKED_KEYS = new Set([
-  "fresh|Dairy|Friendly Farms Milk (1 gal)",
-  "fresh|Dairy|Eggs (dozen)"
-]);
-const MEAT_CATEGORY = "Meat & Poultry";
-
-// How urgently an "opened" item in this category needs to be watched.
-// - "fast": show the opened-counter right away (jarred/canned things that spoil once opened)
-// - "slow": still track quietly, but only surface the badge once it's been open 60+ days
-// - "none": don't track at all (Freezer is time-paused while frozen — nothing "opens" there)
-const CATEGORY_SPEED = {
-  "Canned Tomatoes & Vegetables": "fast",
-  "Soups & Broths": "fast",
-  "Canned Protein": "fast",
-  "Condiments & Sauces": "fast",
-  "Baking & Pantry Staples": "slow",
-  "Pasta & Grains": "slow",
-  "Gravy, Bouillon & Seasoning Mixes": "slow",
-  "Snacks & Nuts": "slow",
-  "Dried Fruit": "slow",
-  "Plant-Based & Misc Shelf-Stable": "slow"
-};
-const SLOW_RESURFACE_DAYS = 60;
-
-function getSpeed(kind, category){
-  if(kind === "freezer") return "none"; // Freezer is time-paused while frozen
-  if(kind === "fresh") return "fast"; // Fresh perishables: show "opened" + running counter right away
-  return CATEGORY_SPEED[category] || "fast"; // pantry: unmapped categories default to fast (safer)
-}
-
-// Any previously-set opened tags on Freezer/Fresh items (from before this category
-// split existed) shouldn't keep showing — clean those up once on load.
-function cleanupIneligibleOpenedTags(){
-  Object.keys(qtyState).forEach(k => {
-    if(k.startsWith(OPENED_PREFIX)){
-      const parts = k.slice(OPENED_PREFIX.length).split("|");
-      if(getSpeed(parts[0], parts[1]) === "none") delete qtyState[k];
-    } else if(k.startsWith(OPENED_COUNT_PREFIX)){
-      const parts = k.slice(OPENED_COUNT_PREFIX.length).split("|");
-      if(getSpeed(parts[0], parts[1]) === "none") delete qtyState[k];
-    }
-  });
-}
-
-// ---- Batch tracking (milk, eggs) — each carton/gallon has its own added date
-// and optional expiration — instead of one shared date for the whole item. ----
-function getBatches(key){
-  return qtyState[BATCH_PREFIX + key] || [];
-}
-function syncBatchTotal(key, batches){
-  qtyState[BATCH_PREFIX + key] = batches;
-  qtyState[key] = batches.reduce((s,b) => s + b.qty, 0);
-}
-// Translates a plain "set total to X" call (from the normal +/- buttons, the
-// quantity editor, meal deduction, Instacart import, etc.) into batch-level
-// changes, so every existing call site works on batch items without modification.
-function adjustBatchTotal(key, rounded){
-  let batches = getBatches(key).slice();
-  const prevTotal = batches.reduce((s,b) => s + b.qty, 0);
-  const delta = Math.round((rounded - prevTotal) * 100) / 100;
-  if(delta > 0){
-    // Unclear which physical carton this addition belongs to (a plain +1 tap,
-    // or a meal-reset restoring stock) — add it as a fresh, undated batch.
-    batches.push({id: Date.now() + Math.random(), qty: delta, exp: null, added: Date.now()});
-  } else if(delta < 0){
-    let remaining = -delta;
-    // Use up soonest-expiring batches first; batches with no known expiration
-    // are treated as least urgent and used last.
-    batches.sort((a,b) => (a.exp || "9999-99-99").localeCompare(b.exp || "9999-99-99"));
-    for(let i=0; i<batches.length && remaining > 0; i++){
-      const take = Math.min(batches[i].qty, remaining);
-      batches[i].qty = Math.round((batches[i].qty - take) * 100) / 100;
-      remaining = Math.round((remaining - take) * 100) / 100;
-    }
-    batches = batches.filter(b => b.qty > 0);
-  }
-  syncBatchTotal(key, batches);
-}
-function addBatch(key, qty, exp){
-  const batches = getBatches(key).slice();
-  batches.push({id: Date.now() + Math.random(), qty: Math.max(0, qty), exp: exp || null, added: Date.now()});
-  syncBatchTotal(key, batches);
-}
-function removeBatch(key, id){
-  const batches = getBatches(key).filter(b => b.id !== id);
-  syncBatchTotal(key, batches);
-}
-function updateBatchQty(key, id, newQty){
-  const rounded = Math.max(0, Math.round(newQty * 100) / 100);
-  const batches = getBatches(key)
-    .map(b => b.id === id ? Object.assign({}, b, {qty: rounded}) : b)
-    .filter(b => b.qty > 0);
-  syncBatchTotal(key, batches);
-}
-function updateBatchExp(key, id, exp){
-  const batches = getBatches(key).map(b => b.id === id ? Object.assign({}, b, {exp: exp || null}) : b);
-  syncBatchTotal(key, batches);
-}
-
-// Renders the special per-carton UI for batch-tracked items (milk, eggs) in
-// place of the normal single-quantity stepper. Each batch shows its own age
-// and expiration, editable independently.
-let editingBatchExpId = null;
-
-function renderBatchItem(li, key, displayName){
-  const total = getBatches(key).reduce((s,b) => s + b.qty, 0);
-  li.className = "item" + (total === 0 ? " zero" : "");
-
-  const name = document.createElement("div");
-  name.className = "item-name";
-  name.textContent = displayName;
-  li.appendChild(name);
-
-  const totalLine = document.createElement("div");
-  totalLine.className = "item-tags";
-  totalLine.style.marginBottom = "4px";
-  totalLine.textContent = "Total: " + total;
-  li.appendChild(totalLine);
-
-  const batches = getBatches(key).slice().sort((a,b) => (a.added||0) - (b.added||0));
-
-  if(batches.length === 0){
-    const empty = document.createElement("div");
-    empty.className = "meal-empty-note";
-    empty.textContent = "None on hand.";
-    li.appendChild(empty);
-  }
-
-  batches.forEach(b => {
-    const row = document.createElement("div");
-    row.className = "batch-row";
-
-    const stepper = document.createElement("div");
-    stepper.className = "stepper mini";
-    const minus = document.createElement("button");
-    minus.textContent = "–";
-    minus.onclick = () => { updateBatchQty(key, b.id, b.qty - 1); persistSharedState(); render(); };
-    const qtyEl = document.createElement("div");
-    qtyEl.className = "qty";
-    qtyEl.textContent = b.qty;
-    const plus = document.createElement("button");
-    plus.textContent = "+";
-    plus.onclick = () => { updateBatchQty(key, b.id, b.qty + 1); persistSharedState(); render(); };
-    stepper.appendChild(minus);
-    stepper.appendChild(qtyEl);
-    stepper.appendChild(plus);
-    row.appendChild(stepper);
-
-    const meta = document.createElement("div");
-    meta.className = "batch-meta";
-
-    const ageDays = b.added ? openedDaysAgo(b.added) : 0;
-    const agePill = document.createElement("span");
-    agePill.className = "tag-pill purchased";
-    agePill.textContent = ageDays === 0 ? "Added today" : "Added " + ageDays + "d ago";
-    meta.appendChild(agePill);
-
-    if(editingBatchExpId === b.id){
-      const input = document.createElement("input");
-      input.type = "date";
-      input.value = b.exp || "";
-      const saveBtn = document.createElement("button");
-      saveBtn.className = "meal-btn";
-      saveBtn.style.padding = "4px 8px";
-      saveBtn.textContent = "Save";
-      saveBtn.onclick = () => {
-        updateBatchExp(key, b.id, input.value || null);
-        editingBatchExpId = null;
-        persistSharedState();
-        render();
-      };
-      meta.appendChild(input);
-      meta.appendChild(saveBtn);
-    } else if(b.exp){
-      const info = expInfo(b.exp);
-      const pill = document.createElement("span");
-      pill.className = "tag-pill " + info.cls;
-      pill.textContent = info.text;
-      pill.style.cursor = "pointer";
-      pill.onclick = () => { editingBatchExpId = b.id; render(); };
-      meta.appendChild(pill);
-    } else {
-      const link = document.createElement("button");
-      link.className = "tag-link";
-      link.textContent = "+ set expiration";
-      link.onclick = () => { editingBatchExpId = b.id; render(); };
-      meta.appendChild(link);
-    }
-
-    const removeBtn = document.createElement("button");
-    removeBtn.className = "tag-link";
-    removeBtn.textContent = "Remove";
-    removeBtn.onclick = () => { removeBatch(key, b.id); persistSharedState(); render(); };
-    meta.appendChild(removeBtn);
-
-    row.appendChild(meta);
-    li.appendChild(row);
-  });
-
-  const addBtn = document.createElement("button");
-  addBtn.className = "tag-link";
-  addBtn.textContent = "+ Add carton/gallon";
-  addBtn.onclick = () => {
-    addBatch(key, 1, null);
-    persistSharedState();
-    render();
-  };
-  li.appendChild(addBtn);
-}
-
-// Sets a (possibly fractional) quantity and auto-manages the "opened" day counter:
-// crossing from a whole number down to a fraction starts the clock; going back to
-// a whole number (restocked, or used up to 0) clears it.
-function commitQty(key, rawVal, opts){
-  opts = opts || {};
-  const val = Math.max(0, rawVal);
-  const rounded = Math.round(val * 100) / 100;
-
-  if(BATCH_TRACKED_KEYS.has(key)){
-    adjustBatchTotal(key, rounded);
-    return;
-  }
-
-  const prev = qtyState[key] || 0;
-  qtyState[key] = rounded;
-
-  const parts = key.split("|");
-  const kind = parts[0], category = parts[1];
-
-  // Clamp the manual "how many are opened" count so it can never exceed the new total.
-  const countKey = OPENED_COUNT_PREFIX + key;
-  const cap = rounded <= 0 ? 0 : Math.max(1, Math.floor(rounded));
-  let openedCount = qtyState[countKey] || 0;
-  if(openedCount > cap) openedCount = cap;
-  if(openedCount <= 0) delete qtyState[countKey];
-  else qtyState[countKey] = openedCount;
-
-  const openedKey = OPENED_PREFIX + key;
-  const speed = getSpeed(kind, category);
-  if(speed === "none"){
-    delete qtyState[openedKey];
-  } else if((!Number.isInteger(rounded) && rounded > 0) || openedCount > 0){
-    if(!qtyState[openedKey]) qtyState[openedKey] = Date.now();
-  } else {
-    delete qtyState[openedKey];
-  }
-
-  // Fresh items: any restock (quantity going up) resets the "bought X days ago"
-  // clock automatically — unless the caller explicitly opts out (Import Food's
-  // backfill mode, for items that have actually been on hand a while).
-  if(kind === "fresh"){
-    const purchasedKey = PURCHASE_PREFIX + key;
-    if(rounded === 0){
-      delete qtyState[purchasedKey];
-    } else if(rounded > prev && !opts.skipPurchaseStamp){
-      qtyState[purchasedKey] = Date.now();
-    }
-  }
-}
-
-// Adjusts how many units of a multi-unit item (e.g. 2 jars, 1 open) are currently open.
-// Starts/keeps the "opened" clock ticking whenever at least one unit is open.
-function adjustOpenedCount(key, delta){
-  const qty = qtyState[key] || 0;
-  const cap = qty <= 0 ? 0 : Math.max(1, Math.floor(qty));
-  const countKey = OPENED_COUNT_PREFIX + key;
-  let count = qtyState[countKey] || 0;
-  count = Math.min(cap, Math.max(0, count + delta));
-  if(count > 0) qtyState[countKey] = count;
-  else delete qtyState[countKey];
-
-  const parts = key.split("|");
-  const speed = getSpeed(parts[0], parts[1]);
-  const openedKey = OPENED_PREFIX + key;
-  if(speed === "none"){
-    delete qtyState[openedKey];
-  } else if(count > 0){
-    if(!qtyState[openedKey]) qtyState[openedKey] = Date.now();
-  } else if(Number.isInteger(qty)){
-    delete qtyState[openedKey];
-  }
-
-  persistSharedState();
-  render();
-}
-
-function openedDaysAgo(ts){
-  return Math.max(0, Math.floor((Date.now() - ts) / 86400000));
-}
-
-// Formats a timestamp as a local YYYY-MM-DD string, for prefilling <input type="date">.
-function isoDateFromTs(ts){
-  const d = new Date(ts);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return y + "-" + m + "-" + day;
-}
-
-function formatShortDate(iso){
-  const d = new Date(iso + "T00:00:00");
-  return d.toLocaleDateString("en-US", {month:"short", day:"numeric"});
-}
-
-function expInfo(iso){
-  const today = new Date(); today.setHours(0,0,0,0);
-  const expD = new Date(iso + "T00:00:00");
-  const diff = Math.round((expD - today) / 86400000);
-  if(diff > 3) return {text:"Exp " + formatShortDate(iso), cls:"exp-ok"};
-  if(diff > 1) return {text:"Exp in " + diff + "d", cls:"exp-soon"};
-  if(diff === 1) return {text:"Exp tomorrow", cls:"exp-soon"};
-  if(diff === 0) return {text:"Exp today", cls:"exp-soon"};
-  return {text:"Expired " + (-diff) + "d ago", cls:"exp-over"};
-}
-
-function daysUntil(iso){
-  const today = new Date(); today.setHours(0,0,0,0);
-  const expD = new Date(iso + "T00:00:00");
-  return Math.round((expD - today) / 86400000);
-}
-
-// True if this item has a known expiration (or, for batch-tracked items like
-// milk/eggs, at least one on-hand carton) landing within `expiringDays` days
-// from today — includes anything already expired, since that's more urgent
-// than "soon." Items with no expiration set at all don't match.
-function isExpiringSoon(kind, category, itemName){
-  const key = kind + "|" + category + "|" + itemName;
-  if(BATCH_TRACKED_KEYS.has(key)){
-    return getBatches(key).some(b => b.qty > 0 && b.exp && daysUntil(b.exp) <= expiringDays);
-  }
-  const exp = qtyState[EXP_PREFIX + key];
-  if(!exp) return false;
-  return daysUntil(exp) <= expiringDays;
-}
-
-// Baseline from the last known-good pantry snapshot (frozen 2026-07-26 —
-// current-week meal plan with tuna bake on Friday). Each entry only needs
-// the fields that actually apply — plain items with nothing special just
-// get their quantity from DATA above and nothing else.
-const SEED_STATE = {
-  "fresh|Meat & Poultry|Ground Mild Italian Sausage": {bought:"2026-07-19"},
-  "fresh|Meat & Poultry|Simply Nature Organic Chicken Breasts (1.0 lb)": {bought:"2026-07-19"},
-  "fresh|Meat & Poultry|Fresh Atlantic Salmon Side (2.0 lb)": {bought:"2026-07-19"},
-  "fresh|Meat & Poultry|Parkview Turkey Polska Kielbasa": {bought:"2026-07-19"},
-  "fresh|Produce|Lemons Bag": {bought:"2026-07-19", opened:"2026-07-24"},
-  "fresh|Produce|Little Salad Bar Spinach": {bought:"2026-07-19"},
-  "fresh|Produce|Zucchini Package (1.5 lb)": {bought:"2026-07-19"},
-  "fresh|Produce|Organic Broccoli": {bought:"2026-07-19"},
-  "fresh|Produce|Bananas (8 ct)": {bought:"2026-07-19"},
-  "fresh|Produce|Gala Apples Bag": {bought:"2026-07-19"},
-  "fresh|Dairy|Friendly Farms Milk (1 gal)": {bought:"2026-07-19", batches:[{qty:1, added:"2026-07-19", exp:null}]},
-  "fresh|Dairy|Friendly Farms Nonfat Vanilla Blended Greek Yogurt": {bought:"2026-07-19"},
-  "fresh|Dairy|Countryside Creamery Spreadable Butter with Olive Oil and Sea Salt": {bought:"2026-07-19"},
-  "fresh|Dairy|Eggs (dozen)": {bought:"2026-07-19", batches:[{qty:1, added:"2026-07-19", exp:null}]}
-  // Everything else (the 24 items added 7/23, plus all Pantry/Freezer items)
-  // intentionally has no seed entry — they start with no opened/expiration/
-  // bought badge until you set one, matching their actual real-world state.
-};
-
-DATA.pantry.forEach(g => g.items.forEach(it => qtyState["pantry|"+g.category+"|"+it[0]] = it[1]));
-DATA.freezer.forEach(g => g.items.forEach(it => qtyState["freezer|"+g.category+"|"+it[0]] = it[1]));
-DATA.fresh.forEach(g => g.items.forEach(it => {
-  const key = "fresh|"+g.category+"|"+it[0];
-  qtyState[key] = it[1];
-  const seed = SEED_STATE[key];
-  if(seed){
-    if(seed.bought) qtyState[PURCHASE_PREFIX + key] = new Date(seed.bought + "T00:00:00").getTime();
-    if(seed.opened) qtyState[OPENED_PREFIX + key] = new Date(seed.opened + "T00:00:00").getTime();
-    if(seed.exp) qtyState[EXP_PREFIX + key] = seed.exp;
-    if(seed.batches){
-      qtyState[BATCH_PREFIX + key] = seed.batches.map((b, i) => ({
-        id: "seed-" + key + "-" + i,
-        qty: b.qty,
-        exp: b.exp || null,
-        added: b.added ? new Date(b.added + "T00:00:00").getTime() : Date.now()
-      }));
-    }
-  }
-}));
-
-// Snapshot used by "Export for Claude" to figure out what's changed. Starts as
-// the artifact's built-in starting quantities, but gets overwritten by
-// loadSharedState() if a persisted export baseline exists (i.e. a previous
-// export was already copied) — see EXPORT_BASELINE_KEY below.
-let BASELINE_QTY = {};
-Object.keys(qtyState).forEach(k => {
-  const parts = k.split("|");
-  if(parts.length === 3 && (parts[0] === "pantry" || parts[0] === "freezer" || parts[0] === "fresh")){
-    BASELINE_QTY[k] = qtyState[k];
-  }
-});
+let suppressPollUntil = 0; // skip the next poll right after a local save, to avoid a race overwriting an in-flight edit
 
 function setSyncStatus(mode, text){
-  // Status line removed from the UI — kept as a no-op so existing calls
-  // elsewhere in the code don't need to be individually stripped out.
+  const el = document.getElementById("syncStatus");
+  const txt = document.getElementById("syncText");
+  el.className = "sync-status " + mode;
+  txt.textContent = text;
 }
 
-// After any local save, give the backend a few seconds to actually reflect it
-// before trusting a fetch to overwrite what's already in memory. Without this,
-// the 20-second auto-refresh below can race a just-made edit — fetching a
-// still-stale copy and silently reverting it, even though the save itself
-// reported success. Every persist* function bumps this on completion.
-let suppressAutoReloadUntil = 0;
-function markLocalSaveJustHappened(){
-  suppressAutoReloadUntil = Date.now() + 5000;
-}
-
-async function loadSharedState(isBackgroundRefresh, attempt){
-  attempt = attempt || 1;
-  if(isBackgroundRefresh && Date.now() < suppressAutoReloadUntil){
-    return; // a local save just happened — skip this poll cycle to avoid clobbering it
-  }
-  let qtyFetchFailed = false;
+// ==== Loading ====
+async function loadAll(isBackgroundPoll){
+  if(isBackgroundPoll && Date.now() < suppressPollUntil) return;
   try{
-    let result = null;
-    try{ result = await window.storage.get(STORAGE_KEY, true); }catch(e){ qtyFetchFailed = true; }
-    if(result && result.value){
-      const saved = JSON.parse(result.value);
-      qtyState = Object.assign({}, qtyState, saved);
-    }
-    let customResult = null;
-    try{ customResult = await window.storage.get(CUSTOM_ITEMS_KEY, true); }catch(e){ /* not set yet */ }
-    if(customResult && customResult.value){
-      customItems = JSON.parse(customResult.value);
-      customItems.forEach(ci => mergeCustomItemIntoData(ci.kind, ci.category, ci.item));
-    }
-    let mealsResult = null, mealsVersionResult = null;
-    let mealsFetchFailed = false, mealsVersionFetchFailed = false;
-    try{
-      mealsResult = await window.storage.get(MEALS_KEY, true);
-    }catch(e){ mealsFetchFailed = true; }
-    try{
-      mealsVersionResult = await window.storage.get(MEALS_VERSION_KEY, true);
-    }catch(e){ mealsVersionFetchFailed = true; }
-    const savedMealsVersion = mealsVersionResult && mealsVersionResult.value;
-    if(mealsResult && mealsResult.value && savedMealsVersion === SEED_VERSION){
-      const savedMeals = JSON.parse(mealsResult.value);
-      if(Array.isArray(savedMeals) && savedMeals.length){
-        MEALS.length = 0;
-        savedMeals.forEach(m => MEALS.push(m));
-      }
-    } else if(mealsFetchFailed || mealsVersionFetchFailed){
-      // Couldn't confirm whether synced meals exist or match — a fetch
-      // failure here must NEVER be treated the same as "confirmed no synced
-      // meals," because that conflation previously let one bad moment on
-      // either phone silently overwrite real shared meal data with this
-      // file's stale hardcoded defaults. Leave MEALS as whatever's already
-      // in memory and do NOT touch storage this cycle — the 20s poll (or a
-      // retry, on initial load) will get another chance to confirm properly.
-    } else {
-      // Both fetches genuinely succeeded and confirmed there's no matching
-      // synced copy — safe to seed storage with this build's own meal plan.
-      try{
-        await window.storage.set(MEALS_KEY, JSON.stringify(MEALS), true);
-        await window.storage.set(MEALS_VERSION_KEY, SEED_VERSION, true);
-      }catch(e){ /* non-fatal — in-memory MEALS is already correct for this session */ }
-    }
-    let baselineResult = null, baselineVersionResult = null;
-    let baselineFetchFailed = false, baselineVersionFetchFailed = false;
-    if(baselineLockedThisSession){
-      // An explicit local reset (Mark Current Amounts as Correct, or a
-      // completed Export copy) already happened this session — that's more
-      // trustworthy than anything a fetch could hand back right now, so skip
-      // touching BASELINE_QTY entirely rather than risk a stale read undoing it.
-    } else {
-    try{ baselineResult = await window.storage.get(EXPORT_BASELINE_KEY, true); }catch(e){ baselineFetchFailed = true; }
-    try{ baselineVersionResult = await window.storage.get(EXPORT_BASELINE_VERSION_KEY, true); }catch(e){ baselineVersionFetchFailed = true; }
-    const savedBaselineVersion = baselineVersionResult && baselineVersionResult.value;
-    if(baselineResult && baselineResult.value && savedBaselineVersion === SEED_VERSION){
-      BASELINE_QTY = JSON.parse(baselineResult.value);
-    } else if(baselineFetchFailed || baselineVersionFetchFailed){
-      // Couldn't confirm — leave BASELINE_QTY as whatever's already in memory
-      // and don't touch storage this cycle. Same principle as the meals fix
-      // above: a fetch failure isn't proof there's nothing saved.
-    } else {
-      // Confirmed: no matching-version baseline exists. Previously this
-      // silently fell back to whatever was hardcoded into this file's
-      // DATA/SEED_STATE at build time — which goes stale the moment real
-      // usage diverges from it, causing already-logged changes to re-appear
-      // as "new" in every export until the next rebuild. Instead, reset the
-      // baseline to the CURRENT live quantities (post-storage-sync, right
-      // here) so a genuine version mismatch just means "no known changes
-      // yet" rather than resurrecting old deltas.
-      BASELINE_QTY = {};
-      Object.keys(qtyState).forEach(k => {
-        const parts = k.split("|");
-        if(parts.length === 3 && (parts[0] === "pantry" || parts[0] === "freezer" || parts[0] === "fresh")){
-          BASELINE_QTY[k] = qtyState[k];
-        }
-      });
-      try{
-        await window.storage.set(EXPORT_BASELINE_KEY, JSON.stringify(BASELINE_QTY), true);
-        await window.storage.set(EXPORT_BASELINE_VERSION_KEY, SEED_VERSION, true);
-      }catch(e){ /* non-fatal — export will still work off in-memory BASELINE_QTY */ }
-    }
-    }
-    let exportedMealsResult = null, exportedMealsFetchFailed = false;
-    try{ exportedMealsResult = await window.storage.get(EXPORTED_MEALS_KEY, true); }catch(e){ exportedMealsFetchFailed = true; }
-    if(exportedMealsResult && exportedMealsResult.value){
-      exportedMealDays = JSON.parse(exportedMealsResult.value);
-    }
-
-    const anyFetchFailed = qtyFetchFailed || mealsFetchFailed || mealsVersionFetchFailed;
-    // Deliberately NOT included above: baselineFetchFailed, baselineVersionFetchFailed,
-    // customFetchFailed, exportedMealsFetchFailed. Those keys only ever get created
-    // the first time a specific action happens (an Export, or an Instacart import) —
-    // until then, "not found" is their normal, permanent, expected state, not a
-    // failure. Counting them here caused the sync-status banner to show an error
-    // forever on any artifact where those actions simply hadn't happened yet, even
-    // though everything was actually working correctly. Only STORAGE_KEY and the
-    // meals keys carry real overwrite/corruption risk, so only those are worth
-    // retrying on or alarming about.
-
-    // A fetch failure on initial load is far more likely to be a transient
-    // hiccup (e.g. auth not fully settled right after a fresh login/refresh)
-    // than proof nothing's saved — so retry a few times, with a short delay,
-    // before settling for whatever's already in memory. Background polls
-    // just wait for the next 20s cycle instead of retrying immediately.
-    if(!isBackgroundRefresh && anyFetchFailed && attempt < 4){
-      setTimeout(() => loadSharedState(false, attempt + 1), 900);
-      return;
-    }
-
-    cleanupIneligibleOpenedTags();
-    storageWorking = true;
-    if(anyFetchFailed){
-      setSyncStatus("error", "Couldn't confirm latest saved data — showing what's in memory. Retrying…");
-    } else {
-      setSyncStatus("ok", "Synced — shared with anyone who opens this link");
-    }
-  }catch(e){
-    // Genuinely unexpected error outside the individual per-key try/catches
-    // above (all of which already handle their own failure modes). Don't
-    // claim "Synced" here — that's exactly the false assurance that let past
-    // corruption go unnoticed.
-    cleanupIneligibleOpenedTags();
-    storageWorking = true;
-    if(!isBackgroundRefresh){
-      setSyncStatus("error", "Couldn't confirm latest saved data — showing what's in memory. Retrying…");
-    }
+    const [freshItems, freshMeals] = await Promise.all([apiGet("items"), apiGet("meals")]);
+    items = freshItems.map(it => ({section: it.section, category: it.category, item: it.item, qty: Number(it.qty) || 0}));
+    meals = freshMeals.map(m => ({day: m.day, meal: m.meal, cooked: m.cooked === true || m.cooked === "TRUE" || m.cooked === "true"}));
+    setSyncStatus("ok", "Synced");
+    render();
+  }catch(err){
+    setSyncStatus("error", "Couldn't load — check your connection");
+    if(!isBackgroundPoll) render(); // still render an empty state rather than a blank page
   }
+}
+
+// ==== Saving ====
+async function saveItemQty(it){
+  setSyncStatus("saving", "Saving…");
+  try{
+    await apiPost({resource:"items", action:"upsert", section: it.section, category: it.category, item: it.item, qty: it.qty});
+    suppressPollUntil = Date.now() + 4000;
+    setSyncStatus("ok", "Synced");
+  }catch(err){
+    setSyncStatus("error", "Save failed — try again");
+  }
+}
+
+async function deleteItem(it){
+  items = items.filter(x => x !== it);
   render();
-}
-
-async function persistSharedState(){
   setSyncStatus("saving", "Saving…");
   try{
-    const result = await window.storage.set(STORAGE_KEY, JSON.stringify(qtyState), true);
-    if(!result) throw new Error("empty response");
-    storageWorking = true;
-    markLocalSaveJustHappened();
-    setSyncStatus("ok", "Synced — shared with anyone who opens this link");
-    return true;
-  }catch(e){
-    storageWorking = false;
-    setSyncStatus("error", "Not syncing right now — changes are local to this device only");
-    return false;
+    await apiPost({resource:"items", action:"delete", section: it.section, category: it.category, item: it.item});
+    suppressPollUntil = Date.now() + 4000;
+    setSyncStatus("ok", "Synced");
+  }catch(err){
+    setSyncStatus("error", "Delete failed — try again");
   }
 }
 
-async function persistCustomItems(){
+async function saveMeal(m){
   setSyncStatus("saving", "Saving…");
   try{
-    const result = await window.storage.set(CUSTOM_ITEMS_KEY, JSON.stringify(customItems), true);
-    if(!result) throw new Error("empty response");
-    storageWorking = true;
-    markLocalSaveJustHappened();
-    setSyncStatus("ok", "Synced — shared with anyone who opens this link");
-    return true;
-  }catch(e){
-    storageWorking = false;
-    setSyncStatus("error", "Not syncing right now — changes are local to this device only");
-    return false;
+    await apiPost({resource:"meals", action:"upsert", day: m.day, meal: m.meal, cooked: m.cooked});
+    suppressPollUntil = Date.now() + 4000;
+    setSyncStatus("ok", "Synced");
+  }catch(err){
+    setSyncStatus("error", "Save failed — try again");
   }
 }
 
-async function persistMeals(){
-  setSyncStatus("saving", "Saving…");
-  try{
-    const result = await window.storage.set(MEALS_KEY, JSON.stringify(MEALS), true);
-    if(!result) throw new Error("empty response");
-    await window.storage.set(MEALS_VERSION_KEY, SEED_VERSION, true);
-    storageWorking = true;
-    markLocalSaveJustHappened();
-    setSyncStatus("ok", "Synced — shared with anyone who opens this link");
-    return true;
-  }catch(e){
-    storageWorking = false;
-    setSyncStatus("error", "Not syncing right now — changes are local to this device only");
-    return false;
-  }
-}
+// ==== Rendering ====
+function render(){
+  const main = document.getElementById("main");
+  main.innerHTML = "";
 
-// Snapshots the current on-hand quantities as the new export baseline, so the
-// next "Export for Claude" only reports what changes after this point — not
-// the same deltas all over again. Called once the export text has actually
-// been copied (see copyExportBtn below).
-async function persistExportBaseline(){
-  const snapshot = {};
-  Object.keys(qtyState).forEach(k => {
-    const parts = k.split("|");
-    if(parts.length === 3 && (parts[0] === "pantry" || parts[0] === "freezer" || parts[0] === "fresh")){
-      snapshot[k] = qtyState[k];
-    }
-  });
-  BASELINE_QTY = snapshot;
-  baselineLockedThisSession = true;
-
-  MEALS.forEach(meal => {
-    if(qtyState[MEALS_COOKED_PREFIX + meal.day] && !exportedMealDays.includes(meal.day)){
-      exportedMealDays.push(meal.day);
-    }
-  });
-
-  try{
-    await window.storage.set(EXPORT_BASELINE_KEY, JSON.stringify(snapshot), true);
-    await window.storage.set(EXPORT_BASELINE_VERSION_KEY, SEED_VERSION, true);
-    await window.storage.set(EXPORTED_MEALS_KEY, JSON.stringify(exportedMealDays), true);
-    markLocalSaveJustHappened();
-    return true;
-  }catch(e){
-    return false;
-  }
+  if(!query.trim()) renderMeals(main);
+  renderItems(main);
+  renderAddItemForm(main);
 }
 
 function renderMeals(container){
+  if(meals.length === 0) return;
   const block = document.createElement("div");
   block.className = "meals-block";
 
-  const headerRow = document.createElement("div");
-  headerRow.className = "meals-header";
-  headerRow.onclick = () => {
-    mealsCollapsed = !mealsCollapsed;
-    render();
-  };
+  const title = document.createElement("div");
+  title.className = "meals-title";
+  title.textContent = "This Week's Meals";
+  block.appendChild(title);
 
-  const tag = document.createElement("div");
-  tag.className = "shelf-tag pantry";
-  tag.textContent = "This Week's Meals";
-
-  const chevron = document.createElement("div");
-  chevron.className = "meals-chevron" + (mealsCollapsed ? " collapsed" : "");
-  chevron.textContent = "▼";
-
-  headerRow.appendChild(tag);
-  headerRow.appendChild(chevron);
-  block.appendChild(headerRow);
-
-  if(mealsCollapsed){
-    container.appendChild(block);
-    return;
-  }
-
-  MEALS.forEach(meal => {
-    const cookedKey = MEALS_COOKED_PREFIX + meal.day;
-    const amountsKey = MEALS_AMOUNTS_PREFIX + meal.day;
-    const isCooked = !!qtyState[cookedKey];
-    const storedAmounts = qtyState[amountsKey] ? JSON.parse(qtyState[amountsKey]) : null;
-
-    const card = document.createElement("div");
-    card.className = "meal-card" + (isCooked ? " cooked" : "");
-
+  meals.forEach(m => {
     const row = document.createElement("div");
     row.className = "meal-row";
 
-    const info = document.createElement("div");
-    const dayEl = document.createElement("div");
-    dayEl.className = "meal-day";
-    dayEl.textContent = meal.day + (isCooked ? " — cooked" : "");
-    const nameEl = document.createElement("div");
-    nameEl.className = "meal-name";
-    nameEl.textContent = meal.name;
-    info.appendChild(dayEl);
-    info.appendChild(nameEl);
+    const day = document.createElement("div");
+    day.className = "meal-day";
+    day.textContent = m.day;
+    row.appendChild(day);
 
-    row.appendChild(info);
+    const input = document.createElement("input");
+    input.className = "meal-name-input" + (m.cooked ? " cooked" : "");
+    input.type = "text";
+    input.value = m.meal;
+    input.addEventListener("change", () => {
+      m.meal = input.value.trim();
+      saveMeal(m);
+    });
+    row.appendChild(input);
 
-    if(isCooked){
-      const btnGroup = document.createElement("div");
-      btnGroup.style.display = "flex";
-      btnGroup.style.gap = "6px";
-      btnGroup.style.flexShrink = "0";
+    const label = document.createElement("label");
+    label.className = "meal-cooked-label";
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = m.cooked;
+    checkbox.addEventListener("change", () => {
+      m.cooked = checkbox.checked;
+      input.className = "meal-name-input" + (m.cooked ? " cooked" : "");
+      saveMeal(m);
+    });
+    label.appendChild(checkbox);
+    label.appendChild(document.createTextNode("Cooked"));
+    row.appendChild(label);
 
-      const editBtn = document.createElement("button");
-      editBtn.className = "meal-btn secondary";
-      editBtn.textContent = expandedMeal === meal.day ? "Close" : "Edit";
-      editBtn.onclick = () => {
-        expandedMeal = expandedMeal === meal.day ? null : meal.day;
-        render();
-      };
-
-      const resetBtn = document.createElement("button");
-      resetBtn.className = "meal-btn secondary";
-      resetBtn.textContent = "Reset";
-      resetBtn.onclick = () => {
-        // Restore whatever quantities were deducted for this meal, then revert to un-cooked.
-        if(storedAmounts){
-          Object.keys(storedAmounts).forEach(key => {
-            commitQty(key, (qtyState[key] || 0) + (storedAmounts[key] || 0));
-          });
-        }
-        delete qtyState[amountsKey];
-        qtyState[cookedKey] = false;
-        if(expandedMeal === meal.day) expandedMeal = null;
-        persistSharedState();
-        render();
-      };
-
-      btnGroup.appendChild(editBtn);
-      btnGroup.appendChild(resetBtn);
-      row.appendChild(btnGroup);
-    } else if(meal.ingredients.length > 0){
-      const btn = document.createElement("button");
-      btn.className = "meal-btn";
-      btn.textContent = expandedMeal === meal.day ? "Close" : "Mark Ingredients";
-      btn.onclick = () => {
-        expandedMeal = expandedMeal === meal.day ? null : meal.day;
-        render();
-      };
-      row.appendChild(btn);
-    }
-
-    card.appendChild(row);
-
-    if(meal.ingredients.length === 0 && !isCooked){
-      const note = document.createElement("div");
-      note.className = "meal-empty-note";
-      note.textContent = "Leftovers — nothing new to deduct.";
-      card.appendChild(note);
-    }
-
-    if(meal.recipe){
-      const toggleRow = document.createElement("div");
-      toggleRow.className = "recipe-toggle-row";
-      const link = document.createElement("button");
-      link.className = "recipe-link";
-      link.textContent = expandedRecipe === meal.day ? "Hide recipe ▲" : "View recipe ▼";
-      link.onclick = () => {
-        expandedRecipe = expandedRecipe === meal.day ? null : meal.day;
-        render();
-      };
-      toggleRow.appendChild(link);
-      card.appendChild(toggleRow);
-    }
-
-    const extraRow = document.createElement("div");
-    extraRow.className = "meal-extra-row";
-
-    const hitKey = MEAL_HIT_PREFIX + meal.day;
-    const noteKey = MEAL_NOTE_PREFIX + meal.day;
-    const isHit = !!qtyState[hitKey];
-    const userNote = qtyState[noteKey] || "";
-
-    const hitBtn = document.createElement("button");
-    hitBtn.className = "hit-btn" + (isHit ? " active" : "");
-    hitBtn.textContent = "👍";
-    hitBtn.title = isHit ? "Marked as a hit" : "Mark as a hit";
-    hitBtn.onclick = () => {
-      if(qtyState[hitKey]) delete qtyState[hitKey];
-      else qtyState[hitKey] = true;
-      persistSharedState();
-      render();
-    };
-    extraRow.appendChild(hitBtn);
-
-    const noteLink = document.createElement("button");
-    noteLink.className = "tag-link";
-    noteLink.textContent = userNote ? "Edit note" : "+ Add note";
-    noteLink.onclick = () => {
-      editingNoteDay = editingNoteDay === meal.day ? null : meal.day;
-      render();
-    };
-    extraRow.appendChild(noteLink);
-
-    const exportMealLink = document.createElement("button");
-    exportMealLink.className = "tag-link";
-    exportMealLink.textContent = "Export this meal";
-    exportMealLink.onclick = () => {
-      openMealExportModal(meal);
-    };
-    extraRow.appendChild(exportMealLink);
-
-    card.appendChild(extraRow);
-
-    if(userNote && editingNoteDay !== meal.day){
-      const noteDisplay = document.createElement("div");
-      noteDisplay.className = "meal-note-display";
-      noteDisplay.textContent = "\u201C" + userNote + "\u201D";
-      noteDisplay.onclick = () => { editingNoteDay = meal.day; render(); };
-      card.appendChild(noteDisplay);
-    }
-
-    if(editingNoteDay === meal.day){
-      const noteEdit = document.createElement("div");
-      noteEdit.className = "meal-note-edit";
-
-      const textarea = document.createElement("textarea");
-      textarea.placeholder = "e.g. \"Kids loved this, but go lighter on the cumin next time.\"";
-      textarea.value = userNote;
-      noteEdit.appendChild(textarea);
-
-      const noteActions = document.createElement("div");
-      noteActions.className = "meal-note-edit-actions";
-
-      const saveNoteBtn = document.createElement("button");
-      saveNoteBtn.className = "meal-btn";
-      saveNoteBtn.textContent = "Save";
-      saveNoteBtn.onclick = () => {
-        const trimmed = textarea.value.trim();
-        if(trimmed) qtyState[noteKey] = trimmed;
-        else delete qtyState[noteKey];
-        editingNoteDay = null;
-        persistSharedState();
-        render();
-      };
-
-      const cancelNoteBtn = document.createElement("button");
-      cancelNoteBtn.className = "meal-btn secondary";
-      cancelNoteBtn.textContent = "Cancel";
-      cancelNoteBtn.onclick = () => { editingNoteDay = null; render(); };
-
-      noteActions.appendChild(saveNoteBtn);
-      noteActions.appendChild(cancelNoteBtn);
-      noteEdit.appendChild(noteActions);
-      card.appendChild(noteEdit);
-    }
-
-    if(expandedMeal === meal.day && meal.ingredients.length > 0){
-      const checklist = document.createElement("div");
-      checklist.className = "meal-checklist";
-
-      const hint = document.createElement("div");
-      hint.className = "meal-checklist-hint";
-      hint.textContent = "\"In stock\" is what's on the shelf right now. \"Used\" is how much this meal takes — enter that and stock updates automatically.";
-      checklist.appendChild(hint);
-
-      const inputs = [];
-
-      meal.ingredients.forEach(ing => {
-        const rowEl = document.createElement("div");
-        rowEl.className = "meal-ingredient-row";
-
-        const label = document.createElement("div");
-        label.className = "meal-ingredient-label";
-        // Always show the exact pantry item name pulled straight from the key
-        // itself — never a separately-authored shorthand label. This guarantees
-        // what's displayed here can never drift from what's actually being
-        // deducted (the earlier "Spaghetti" vs "De Cecco Spaghetti no. 12" bug
-        // was exactly this kind of drift).
-        label.textContent = ing.key.split("|")[2] || ing.label;
-        rowEl.appendChild(label);
-
-        const bottom = document.createElement("div");
-        bottom.className = "meal-ingredient-bottom";
-
-        const stock = document.createElement("div");
-        stock.className = "meal-ingredient-stock";
-        // Current on-hand quantity for this item, live from qtyState — this is the
-        // same number shown on the item's stepper in the Pantry/Freezer/Fresh sections.
-        const stockQty = qtyState[ing.key] || 0;
-        stock.innerHTML = "In stock: " + '<span class="stock-num">' + stockQty + "</span>";
-        bottom.appendChild(stock);
-
-        const usedWrap = document.createElement("div");
-        usedWrap.className = "meal-ingredient-used";
-        const usedLabel = document.createElement("span");
-        usedLabel.className = "meal-ingredient-used-label";
-        usedLabel.textContent = "Used";
-        const input = document.createElement("input");
-        input.className = "meal-ingredient-input";
-        input.type = "number";
-        input.inputMode = "decimal";
-        input.step = "0.25";
-        input.min = "0";
-        // Edit mode (already cooked): prefill with what was actually entered last time.
-        // Initial mode: prefill with the recipe's default amount.
-        input.value = isCooked && storedAmounts && (ing.key in storedAmounts)
-          ? storedAmounts[ing.key]
-          : ing.def;
-        // Live-update the "In stock" number as Regis types, so he can see the
-        // resulting stock before confirming — same math confirmBtn will apply.
-        input.addEventListener("input", () => {
-          const amt = parseFloat(input.value) || 0;
-          const oldAmt = isCooked && storedAmounts && (ing.key in storedAmounts) ? storedAmounts[ing.key] : 0;
-          const delta = amt - oldAmt;
-          const preview = Math.max(0, stockQty - delta);
-          stock.innerHTML = "In stock: " + '<span class="stock-num">' + preview + "</span>";
-        });
-        usedWrap.appendChild(usedLabel);
-        usedWrap.appendChild(input);
-        bottom.appendChild(usedWrap);
-
-        rowEl.appendChild(bottom);
-        inputs.push({key: ing.key, input});
-        checklist.appendChild(rowEl);
-      });
-
-      const actions = document.createElement("div");
-      actions.className = "meal-actions";
-
-      const confirmBtn = document.createElement("button");
-      confirmBtn.className = "meal-btn";
-      confirmBtn.textContent = isCooked ? "Save changes" : "Confirm & deduct";
-      confirmBtn.onclick = () => {
-        const newAmounts = {};
-        inputs.forEach(({key, input}) => {
-          const amt = parseFloat(input.value) || 0;
-          newAmounts[key] = amt;
-          if(isCooked){
-            // Only apply the difference vs. what was already deducted.
-            const oldAmt = (storedAmounts && storedAmounts[key]) || 0;
-            const delta = amt - oldAmt;
-            commitQty(key, (qtyState[key] || 0) - delta);
-          } else {
-            const current = qtyState[key] || 0;
-            commitQty(key, current - amt);
-          }
-        });
-        qtyState[amountsKey] = JSON.stringify(newAmounts);
-        qtyState[cookedKey] = true;
-        expandedMeal = null;
-        persistSharedState();
-        render();
-      };
-
-      const cancelBtn = document.createElement("button");
-      cancelBtn.className = "meal-btn secondary";
-      cancelBtn.textContent = "Cancel";
-      cancelBtn.onclick = () => {
-        expandedMeal = null;
-        render();
-      };
-
-      actions.appendChild(confirmBtn);
-      actions.appendChild(cancelBtn);
-      checklist.appendChild(actions);
-      card.appendChild(checklist);
-    }
-
-    if(expandedRecipe === meal.day && meal.recipe){
-      const recipeBlock = document.createElement("div");
-      recipeBlock.className = "meal-recipe";
-
-      const servings = document.createElement("div");
-      servings.className = "recipe-servings";
-      servings.textContent = "Serves: " + meal.recipe.servings;
-      recipeBlock.appendChild(servings);
-
-      const ingHead = document.createElement("div");
-      ingHead.className = "recipe-subhead";
-      ingHead.textContent = "Ingredients";
-      recipeBlock.appendChild(ingHead);
-
-      const ingList = document.createElement("ul");
-      ingList.className = "recipe-ingredients";
-      meal.recipe.ingredients.forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = item;
-        ingList.appendChild(li);
-      });
-      recipeBlock.appendChild(ingList);
-
-      const stepHead = document.createElement("div");
-      stepHead.className = "recipe-subhead";
-      stepHead.textContent = "Steps";
-      recipeBlock.appendChild(stepHead);
-
-      const stepList = document.createElement("ol");
-      stepList.className = "recipe-steps";
-      meal.recipe.steps.forEach(step => {
-        const li = document.createElement("li");
-        li.textContent = step;
-        stepList.appendChild(li);
-      });
-      recipeBlock.appendChild(stepList);
-
-      if(meal.recipe.note){
-        const note = document.createElement("div");
-        note.className = "recipe-note";
-        note.textContent = meal.recipe.note;
-        recipeBlock.appendChild(note);
-      }
-
-      card.appendChild(recipeBlock);
-    }
-
-    block.appendChild(card);
+    block.appendChild(row);
   });
 
   container.appendChild(block);
 }
 
-// Gathers every item (including individual milk/egg batches) that's expired,
-// expiring today, or expiring tomorrow — the cutoff for the top-of-page banner.
-// Regular expiring-soon-but-not-urgent items (e.g. 3 days out) don't qualify;
-// that's what the "Expiring within" filter chip is for.
-function getUrgentExpirations(){
-  const urgent = [];
-  ["pantry","freezer","fresh"].forEach(kind => {
-    DATA[kind].forEach(g => {
-      g.items.forEach(it => {
-        const name = it[0];
-        const key = kind + "|" + g.category + "|" + name;
-        if(BATCH_TRACKED_KEYS.has(key)){
-          getBatches(key).forEach(b => {
-            if(b.qty > 0 && b.exp){
-              const d = daysUntil(b.exp);
-              if(d <= 1) urgent.push({name, diff:d});
-            }
-          });
-        } else {
-          const qty = qtyState[key] || 0;
-          const exp = qtyState[EXP_PREFIX + key];
-          if(qty > 0 && exp){
-            const d = daysUntil(exp);
-            if(d <= 1) urgent.push({name, diff:d});
-          }
-        }
-      });
-    });
-  });
-  // Most urgent (most overdue) first.
-  urgent.sort((a,b) => a.diff - b.diff);
-  return urgent;
-}
-
-function renderExpiryBanner(container){
-  const urgent = getUrgentExpirations();
-  if(urgent.length === 0) return;
-
-  const banner = document.createElement("div");
-  banner.className = "expiry-banner";
-
-  const icon = document.createElement("div");
-  icon.className = "icon";
-  icon.textContent = "⚠️";
-  banner.appendChild(icon);
-
-  const body = document.createElement("div");
-  body.className = "body";
-
-  const title = document.createElement("div");
-  title.className = "title";
-  title.textContent = urgent.length === 1
-    ? "1 item needs attention"
-    : urgent.length + " items need attention";
-  body.appendChild(title);
-
-  const list = document.createElement("div");
-  list.className = "list";
-  list.innerHTML = urgent.map(u => {
-    const when = u.diff < 0 ? "expired " + (-u.diff) + "d ago" : u.diff === 0 ? "expires today" : "expires tomorrow";
-    return "<b>" + u.name + "</b> — " + when;
-  }).join("<br>");
-  body.appendChild(list);
-
-  banner.appendChild(body);
-  container.appendChild(banner);
-}
-
-function render(){
-  const main = document.getElementById("main");
-  main.innerHTML = "";
-
-  renderExpiryBanner(main);
-
-  if(!query.trim()){
-    renderMeals(main);
-  }
-
-  const sections = [];
-  if(activeScopes.has("all")){
-    sections.push(["pantry", DATA.pantry]);
-    sections.push(["freezer", DATA.freezer]);
-    sections.push(["fresh", DATA.fresh]);
-  } else {
-    if(activeScopes.has("pantry")) sections.push(["pantry", DATA.pantry]);
-    if(activeScopes.has("freezer")){
-      sections.push(["freezer", DATA.freezer]);
-    } else if(activeScopes.has("meat")){
-      sections.push(["freezer", DATA.freezer.filter(g => g.category === MEAT_CATEGORY)]);
-    }
-    if(activeScopes.has("fresh")){
-      sections.push(["fresh", DATA.fresh]);
-    } else if(activeScopes.has("meat")){
-      sections.push(["fresh", DATA.fresh.filter(g => g.category === MEAT_CATEGORY)]);
-    }
-  }
-
-  let totalShown = 0;
+function renderItems(container){
+  const sections = activeScope === "all" ? ["pantry", "freezer", "fresh"] : [activeScope];
   const q = query.trim().toLowerCase();
+  let totalShown = 0;
 
-  sections.forEach(([kind, groups]) => {
+  sections.forEach(section => {
+    const sectionItems = items.filter(it => it.section === section && (!q || it.item.toLowerCase().includes(q)));
+    if(sectionItems.length === 0) return;
+
     const block = document.createElement("div");
     block.className = "section-block";
 
     const tag = document.createElement("div");
-    tag.className = "shelf-tag " + kind;
-    tag.textContent = kind === "pantry" ? "Pantry" : kind === "freezer" ? "Freezer" : "Fresh / Fridge";
+    tag.className = "shelf-tag " + section;
+    tag.textContent = section === "pantry" ? "Pantry" : section === "freezer" ? "Freezer" : "Fresh / Fridge";
     block.appendChild(tag);
 
-    let anyInSection = false;
-
-    groups.forEach(g => {
-      const filteredItems = g.items.filter(it => {
-        const matchesQuery = !q || it[0].toLowerCase().includes(q);
-        if(!matchesQuery) return false;
-        if(hideZero){
-          const key = kind + "|" + g.category + "|" + it[0];
-          if((qtyState[key] || 0) === 0) return false;
-        }
-        if(expiringOnly && !isExpiringSoon(kind, g.category, it[0])) return false;
-        return true;
-      });
-      if(filteredItems.length === 0) return;
-      anyInSection = true;
-      totalShown += filteredItems.length;
+    const categories = [...new Set(sectionItems.map(it => it.category))];
+    categories.forEach(category => {
+      const catItems = sectionItems.filter(it => it.category === category);
+      totalShown += catItems.length;
 
       const catWrap = document.createElement("div");
       catWrap.className = "category-group";
 
-      const catKey = kind + "|" + g.category;
-      const isCollapsed = !q && collapsedCategories.has(catKey);
-
-      const catHeader = document.createElement("div");
-      catHeader.className = "category-header";
-      catHeader.onclick = () => {
-        if(collapsedCategories.has(catKey)) collapsedCategories.delete(catKey);
-        else collapsedCategories.add(catKey);
-        render();
-      };
-
       const catTitle = document.createElement("div");
       catTitle.className = "category-title";
-      catTitle.textContent = g.category;
-
-      const catChevron = document.createElement("div");
-      catChevron.className = "category-chevron" + (isCollapsed ? " collapsed" : "");
-      catChevron.textContent = "▼";
-
-      catHeader.appendChild(catTitle);
-      catHeader.appendChild(catChevron);
-      catWrap.appendChild(catHeader);
-
-      if(isCollapsed){
-        block.appendChild(catWrap);
-        return;
-      }
+      catTitle.textContent = category;
+      catWrap.appendChild(catTitle);
 
       const ul = document.createElement("ul");
       ul.className = "items";
 
-      filteredItems.forEach(it => {
-        const key = kind + "|" + g.category + "|" + it[0];
-        const qty = qtyState[key] || 0;
+      catItems.forEach(it => {
         const li = document.createElement("li");
-        li.className = "item" + (qty === 0 ? " zero" : "");
-
-        if(BATCH_TRACKED_KEYS.has(key)){
-          renderBatchItem(li, key, it[0]);
-          ul.appendChild(li);
-          return;
-        }
-
-        const topRow = document.createElement("div");
-        topRow.className = "item-top-row";
-
-        const main = document.createElement("div");
+        li.className = "item" + (it.qty === 0 ? " zero" : "");
 
         const name = document.createElement("div");
         name.className = "item-name";
-        name.textContent = it[0];
-        main.appendChild(name);
+        name.textContent = it.item;
+        li.appendChild(name);
 
-        const tagsRow = document.createElement("div");
-        tagsRow.className = "item-tags";
-
-        const speed = getSpeed(kind, g.category);
-        const openedTs = qtyState[OPENED_PREFIX + key];
-        const openedCap = qty <= 0 ? 0 : Math.max(1, Math.floor(qty));
-        const openedCount = qtyState[OPENED_COUNT_PREFIX + key] || 0;
-        // Multi-unit "2 of 3 opened" control only makes sense for pantry jars/cans —
-        // Fresh items just get the single Opened/Bought pill below.
-        const showMultiOpenedControl = kind === "pantry" && speed !== "none" && openedCap >= 2;
-
-        if(kind === "fresh"){
-          if(openedTs){
-            const days = openedDaysAgo(openedTs);
-            const pill = document.createElement("span");
-            pill.className = "tag-pill opened";
-            pill.textContent = days === 0 ? "Opened today" : "Opened " + days + "d ago";
-            pill.style.cursor = "pointer";
-            pill.onclick = () => {
-              editingOpenedKey = editingOpenedKey === key ? null : key;
-              editingExpKey = null;
-              editingQtyKey = null;
-              editingPurchasedKey = null;
-              render();
-            };
-            tagsRow.appendChild(pill);
-          } else {
-            const purchasedTs = qtyState[PURCHASE_PREFIX + key];
-            if(purchasedTs){
-              const days = openedDaysAgo(purchasedTs);
-              const pill = document.createElement("span");
-              pill.className = "tag-pill purchased";
-              pill.textContent = days === 0 ? "Bought today" : "Bought " + days + "d ago";
-              pill.style.cursor = "pointer";
-              pill.onclick = () => {
-                editingPurchasedKey = editingPurchasedKey === key ? null : key;
-                editingExpKey = null;
-                editingQtyKey = null;
-                editingOpenedKey = null;
-                render();
-              };
-              tagsRow.appendChild(pill);
-            }
-          }
-        }
-
-        if(kind !== "fresh" && openedTs && !showMultiOpenedControl){
-          const days = openedDaysAgo(openedTs);
-          const shouldShow = speed === "fast" || (speed === "slow" && days >= SLOW_RESURFACE_DAYS);
-          if(shouldShow){
-            const pill = document.createElement("span");
-            pill.className = "tag-pill " + (speed === "slow" ? "opened-stale" : "opened");
-            pill.textContent = days === 0 ? "Opened today" : "Opened " + days + "d ago";
-            pill.style.cursor = "pointer";
-            pill.onclick = () => {
-              editingOpenedKey = editingOpenedKey === key ? null : key;
-              editingExpKey = null;
-              editingQtyKey = null;
-              editingPurchasedKey = null;
-              render();
-            };
-            tagsRow.appendChild(pill);
-          }
-        } else if(showMultiOpenedControl && openedCount > 0){
-          const days = openedTs ? openedDaysAgo(openedTs) : 0;
-          const shouldShow = speed === "fast" || (speed === "slow" && days >= SLOW_RESURFACE_DAYS);
-          if(shouldShow){
-            const pill = document.createElement("span");
-            pill.className = "tag-pill " + (speed === "slow" ? "opened-stale" : "opened");
-            const agePart = days === 0 ? "opened today" : "opened " + days + "d ago";
-            pill.textContent = openedCount + " of " + openedCap + " " + agePart;
-            tagsRow.appendChild(pill);
-          }
-        }
-
-
-        const expIso = qtyState[EXP_PREFIX + key];
-        if(expIso){
-          const info = expInfo(expIso);
-          const pill = document.createElement("span");
-          pill.className = "tag-pill " + info.cls;
-          pill.textContent = info.text;
-          pill.style.cursor = "pointer";
-          pill.onclick = () => {
-            editingExpKey = editingExpKey === key ? null : key;
-            editingQtyKey = null;
-            editingOpenedKey = null;
-            editingPurchasedKey = null;
-            render();
-          };
-          tagsRow.appendChild(pill);
-        } else {
-          const link = document.createElement("button");
-          link.className = "tag-link";
-          link.textContent = "+ set expiration";
-          link.onclick = () => {
-            editingExpKey = editingExpKey === key ? null : key;
-            editingQtyKey = null;
-            editingOpenedKey = null;
-            editingPurchasedKey = null;
-            render();
-          };
-          tagsRow.appendChild(link);
-        }
-
-        if(tagsRow.children.length) main.appendChild(tagsRow);
-
-        if(showMultiOpenedControl){
-          const openedRow = document.createElement("div");
-          openedRow.className = "opened-count-row";
-
-          if(openedCount === 0){
-            const link = document.createElement("button");
-            link.className = "tag-link";
-            link.textContent = "+ mark one opened";
-            link.onclick = () => adjustOpenedCount(key, 1);
-            openedRow.appendChild(link);
-          } else {
-            const label = document.createElement("span");
-            label.className = "tag-link";
-            label.style.textDecoration = "none";
-            label.style.cursor = "default";
-            label.textContent = "Opened:";
-            openedRow.appendChild(label);
-
-            const miniStepper = document.createElement("div");
-            miniStepper.className = "stepper mini";
-
-            const miniMinus = document.createElement("button");
-            miniMinus.textContent = "–";
-            miniMinus.onclick = () => adjustOpenedCount(key, -1);
-
-            const miniQty = document.createElement("div");
-            miniQty.className = "qty";
-            miniQty.textContent = openedCount + "/" + openedCap;
-
-            const miniPlus = document.createElement("button");
-            miniPlus.textContent = "+";
-            miniPlus.onclick = () => adjustOpenedCount(key, 1);
-
-            miniStepper.appendChild(miniMinus);
-            miniStepper.appendChild(miniQty);
-            miniStepper.appendChild(miniPlus);
-            openedRow.appendChild(miniStepper);
-          }
-
-          main.appendChild(openedRow);
-        }
+        const controls = document.createElement("div");
+        controls.className = "item-controls";
 
         const stepper = document.createElement("div");
         stepper.className = "stepper";
-
         const minus = document.createElement("button");
         minus.textContent = "–";
-        minus.onclick = () => { commitQty(key, (qtyState[key]||0) - 0.25); persistSharedState(); render(); };
-
-        const qtySpan = document.createElement("div");
-        qtySpan.className = "qty";
-        qtySpan.textContent = qty;
-        qtySpan.title = "Tap to enter an exact amount (e.g. 0.75 for a partly-used jar)";
-        qtySpan.onclick = () => {
-          editingQtyKey = editingQtyKey === key ? null : key;
-          editingExpKey = null;
-          editingOpenedKey = null;
-          editingPurchasedKey = null;
-          render();
-        };
-
+        minus.onclick = () => { it.qty = Math.max(0, Math.round((it.qty - 1) * 100) / 100); saveItemQty(it); render(); };
+        const qtyEl = document.createElement("div");
+        qtyEl.className = "qty";
+        qtyEl.textContent = it.qty;
         const plus = document.createElement("button");
         plus.textContent = "+";
-        plus.onclick = () => { commitQty(key, (qtyState[key]||0) + 0.25); persistSharedState(); render(); };
-
+        plus.onclick = () => { it.qty = Math.round((it.qty + 1) * 100) / 100; saveItemQty(it); render(); };
         stepper.appendChild(minus);
-        stepper.appendChild(qtySpan);
+        stepper.appendChild(qtyEl);
         stepper.appendChild(plus);
+        controls.appendChild(stepper);
 
-        topRow.appendChild(main);
-        topRow.appendChild(stepper);
-        li.appendChild(topRow);
+        const removeBtn = document.createElement("button");
+        removeBtn.className = "remove-btn";
+        removeBtn.textContent = "✕";
+        removeBtn.title = "Remove item";
+        removeBtn.onclick = () => {
+          if(confirm('Remove "' + it.item + '" from the list entirely?')) deleteItem(it);
+        };
+        controls.appendChild(removeBtn);
 
-        if(editingQtyKey === key){
-          const editRow = document.createElement("div");
-          editRow.className = "edit-row";
-
-          const input = document.createElement("input");
-          input.type = "number";
-          input.inputMode = "decimal";
-          input.step = "0.25";
-          input.min = "0";
-          input.value = qty;
-
-          const saveBtn = document.createElement("button");
-          saveBtn.className = "primary";
-          saveBtn.textContent = "Save";
-          saveBtn.onclick = () => {
-            commitQty(key, parseFloat(input.value) || 0);
-            editingQtyKey = null;
-            persistSharedState();
-            render();
-          };
-
-          const cancelBtn = document.createElement("button");
-          cancelBtn.textContent = "Cancel";
-          cancelBtn.onclick = () => { editingQtyKey = null; render(); };
-
-          editRow.appendChild(input);
-          editRow.appendChild(saveBtn);
-          editRow.appendChild(cancelBtn);
-          li.appendChild(editRow);
-        }
-
-        if(editingExpKey === key){
-          const editRow = document.createElement("div");
-          editRow.className = "edit-row";
-
-          const input = document.createElement("input");
-          input.type = "date";
-          input.value = expIso || "";
-
-          const saveBtn = document.createElement("button");
-          saveBtn.className = "primary";
-          saveBtn.textContent = "Save";
-          saveBtn.onclick = () => {
-            if(input.value){
-              qtyState[EXP_PREFIX + key] = input.value;
-            } else {
-              delete qtyState[EXP_PREFIX + key];
-            }
-            editingExpKey = null;
-            persistSharedState();
-            render();
-          };
-
-          const clearBtn = document.createElement("button");
-          clearBtn.textContent = "Clear";
-          clearBtn.onclick = () => {
-            delete qtyState[EXP_PREFIX + key];
-            editingExpKey = null;
-            persistSharedState();
-            render();
-          };
-
-          const cancelBtn = document.createElement("button");
-          cancelBtn.textContent = "Cancel";
-          cancelBtn.onclick = () => { editingExpKey = null; render(); };
-
-          editRow.appendChild(input);
-          editRow.appendChild(saveBtn);
-          editRow.appendChild(clearBtn);
-          editRow.appendChild(cancelBtn);
-          li.appendChild(editRow);
-        }
-
-        if(editingOpenedKey === key){
-          const editRow = document.createElement("div");
-          editRow.className = "edit-row";
-
-          const input = document.createElement("input");
-          input.type = "date";
-          input.max = isoDateFromTs(Date.now());
-          input.value = openedTs ? isoDateFromTs(openedTs) : isoDateFromTs(Date.now());
-
-          const saveBtn = document.createElement("button");
-          saveBtn.className = "primary";
-          saveBtn.textContent = "Save";
-          saveBtn.onclick = () => {
-            if(input.value){
-              qtyState[OPENED_PREFIX + key] = new Date(input.value + "T00:00:00").getTime();
-            }
-            editingOpenedKey = null;
-            persistSharedState();
-            render();
-          };
-
-          const cancelBtn = document.createElement("button");
-          cancelBtn.textContent = "Cancel";
-          cancelBtn.onclick = () => { editingOpenedKey = null; render(); };
-
-          editRow.appendChild(input);
-          editRow.appendChild(saveBtn);
-          editRow.appendChild(cancelBtn);
-          li.appendChild(editRow);
-        }
-
-        if(kind === "fresh" && editingPurchasedKey === key){
-          const editRow = document.createElement("div");
-          editRow.className = "edit-row";
-
-          const currentPurchasedTs = qtyState[PURCHASE_PREFIX + key];
-          const input = document.createElement("input");
-          input.type = "date";
-          input.max = isoDateFromTs(Date.now());
-          input.value = currentPurchasedTs ? isoDateFromTs(currentPurchasedTs) : isoDateFromTs(Date.now());
-
-          const saveBtn = document.createElement("button");
-          saveBtn.className = "primary";
-          saveBtn.textContent = "Save";
-          saveBtn.onclick = () => {
-            if(input.value){
-              qtyState[PURCHASE_PREFIX + key] = new Date(input.value + "T00:00:00").getTime();
-            }
-            editingPurchasedKey = null;
-            persistSharedState();
-            render();
-          };
-
-          const cancelBtn2 = document.createElement("button");
-          cancelBtn2.textContent = "Cancel";
-          cancelBtn2.onclick = () => { editingPurchasedKey = null; render(); };
-
-          editRow.appendChild(input);
-          editRow.appendChild(saveBtn);
-          editRow.appendChild(cancelBtn2);
-          li.appendChild(editRow);
-        }
-
+        li.appendChild(controls);
         ul.appendChild(li);
       });
 
@@ -3055,724 +511,109 @@ function render(){
       block.appendChild(catWrap);
     });
 
-    if(anyInSection) main.appendChild(block);
+    container.appendChild(block);
   });
 
   if(totalShown === 0){
     const empty = document.createElement("div");
     empty.className = "empty-state";
-    empty.textContent = "Nothing matches \u201C" + query + "\u201D.";
-    main.appendChild(empty);
+    empty.textContent = q ? "No items match your search." : "No items here yet — add one below.";
+    container.appendChild(empty);
   }
-
-  document.getElementById("countPill").textContent = totalShown + " item" + (totalShown===1?"":"s") + " shown";
 }
+
+function renderAddItemForm(container){
+  const block = document.createElement("div");
+  block.className = "add-item-block";
+
+  const title = document.createElement("div");
+  title.className = "add-item-title";
+  title.textContent = "Add an Item";
+  block.appendChild(title);
+
+  const form = document.createElement("div");
+  form.className = "add-item-form";
+
+  const nameInput = document.createElement("input");
+  nameInput.type = "text";
+  nameInput.placeholder = "Item name";
+  form.appendChild(nameInput);
+
+  const row = document.createElement("div");
+  row.className = "add-item-row";
+
+  const sectionSelect = document.createElement("select");
+  ["pantry", "freezer", "fresh"].forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s;
+    opt.textContent = s === "pantry" ? "Pantry" : s === "freezer" ? "Freezer" : "Fresh / Fridge";
+    sectionSelect.appendChild(opt);
+  });
+  row.appendChild(sectionSelect);
+
+  const categoryInput = document.createElement("input");
+  categoryInput.type = "text";
+  categoryInput.placeholder = "Category";
+  categoryInput.setAttribute("list", "categoryOptions");
+  row.appendChild(categoryInput);
+
+  const qtyInput = document.createElement("input");
+  qtyInput.type = "number";
+  qtyInput.min = "0";
+  qtyInput.step = "1";
+  qtyInput.value = "1";
+  qtyInput.style.flex = "0 0 70px";
+  row.appendChild(qtyInput);
+
+  form.appendChild(row);
+
+  const datalist = document.createElement("datalist");
+  datalist.id = "categoryOptions";
+  [...new Set(items.map(it => it.category))].forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c;
+    datalist.appendChild(opt);
+  });
+  form.appendChild(datalist);
+
+  const addBtn = document.createElement("button");
+  addBtn.textContent = "Add to pantry";
+  addBtn.onclick = async () => {
+    const name = nameInput.value.trim();
+    const category = categoryInput.value.trim();
+    if(!name || !category){
+      alert("Please enter both an item name and a category.");
+      return;
+    }
+    const newItem = {section: sectionSelect.value, category, item: name, qty: parseFloat(qtyInput.value) || 0};
+    items.push(newItem);
+    render();
+    await saveItemQty(newItem);
+  };
+  form.appendChild(addBtn);
+
+  block.appendChild(form);
+  container.appendChild(block);
+}
+
+// ==== Controls ====
+document.getElementById("search").addEventListener("input", (e) => {
+  query = e.target.value;
+  render();
+});
 
 document.querySelectorAll(".chip").forEach(chip => {
   chip.addEventListener("click", () => {
-    const s = chip.getAttribute("data-scope");
-    if(s === "all"){
-      activeScopes = new Set(["all"]);
-    } else {
-      activeScopes.delete("all");
-      if(activeScopes.has(s)) activeScopes.delete(s);
-      else activeScopes.add(s);
-      if(activeScopes.size === 0) activeScopes = new Set(["all"]);
-    }
-    document.querySelectorAll(".chip").forEach(c => {
-      c.classList.toggle("active", activeScopes.has(c.getAttribute("data-scope")));
-    });
+    document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+    chip.classList.add("active");
+    activeScope = chip.dataset.scope;
     render();
   });
 });
 
-document.getElementById("search").addEventListener("input", (e) => {
-  query = e.target.value;
-  document.getElementById("searchClear").classList.toggle("show", query.length > 0);
-  render();
-});
-
-document.getElementById("searchClear").addEventListener("click", () => {
-  query = "";
-  const searchInput = document.getElementById("search");
-  searchInput.value = "";
-  document.getElementById("searchClear").classList.remove("show");
-  searchInput.focus();
-  render();
-});
-
-document.getElementById("hideZeroToggle").addEventListener("change", (e) => {
-  hideZero = e.target.checked;
-  render();
-});
-
-document.getElementById("expiringToggle").addEventListener("change", (e) => {
-  expiringOnly = e.target.checked;
-  render();
-});
-
-document.getElementById("expiringDaysInput").addEventListener("change", (e) => {
-  const v = parseInt(e.target.value, 10);
-  expiringDays = (Number.isFinite(v) && v >= 0) ? v : 3;
-  e.target.value = expiringDays;
-  render();
-});
-
-// --- Actions menu (collapsed by default; tucks Export/Import/Meals/Freeze away) ---
-const actionsToggle = document.getElementById("actionsToggle");
-const actionsMenu = document.getElementById("actionsMenu");
-const actionsChevron = document.getElementById("actionsChevron");
-actionsToggle.addEventListener("click", () => {
-  actionsMenu.classList.toggle("open");
-  actionsChevron.classList.toggle("open");
-});
-// Each menu item opens its own modal, so collapse the menu itself right away
-// rather than leaving it sitting open behind the modal.
-actionsMenu.querySelectorAll(".actions-menu-item").forEach(btn => {
-  btn.addEventListener("click", () => {
-    actionsMenu.classList.remove("open");
-    actionsChevron.classList.remove("open");
-  });
-});
-
-// --- Freeze Snapshot (Full State) ---
-// Unlike buildExportText (which only reports what changed since the last
-// baseline), this dumps EVERY item's complete current state — quantity,
-// opened date, expiration date, bought date, and milk/egg batch detail —
-// plus the current meal plan. It's a one-time, occasional export meant for
-// rebuilding the artifact's own hardcoded starting point, not a routine sync.
-// --- Export a single meal ---
-// Unlike the full weekly export, this is meant to be used right after cooking
-// (or rating) one meal — no need to wait for the whole week to wrap up before
-// Claude can log it, and it carries the hit/note fields the weekly export
-// also includes.
-function buildSingleMealExportText(meal){
-  const lines = [];
-  const today = new Date().toLocaleDateString("en-US", {weekday:"long", month:"short", day:"numeric"});
-  lines.push("MEAL EXPORT — " + today);
-  lines.push("");
-  lines.push(meal.day + ": " + meal.name);
-  const isCooked = !!qtyState[MEALS_COOKED_PREFIX + meal.day];
-  const isHit = !!qtyState[MEAL_HIT_PREFIX + meal.day];
-  const userNote = qtyState[MEAL_NOTE_PREFIX + meal.day];
-  lines.push("Cooked: " + (isCooked ? "yes" : "not yet"));
-  lines.push("Hit: " + (isHit ? "yes 👍" : "not marked"));
-  if(userNote) lines.push("Note: " + userNote);
-  if(meal.recipe){
-    lines.push("");
-    if(meal.recipe.servings) lines.push("Servings: " + meal.recipe.servings);
-    if(meal.recipe.ingredients && meal.recipe.ingredients.length){
-      lines.push("Ingredients:");
-      meal.recipe.ingredients.forEach(i => lines.push("  - " + i));
-    }
-    if(meal.recipe.steps && meal.recipe.steps.length){
-      lines.push("Steps:");
-      meal.recipe.steps.forEach((s, idx) => lines.push("  " + (idx+1) + ". " + s));
-    }
-    if(meal.recipe.note) lines.push("Recipe note: " + meal.recipe.note);
-  }
-  return lines.join("\n");
-}
-
-function openMealExportModal(meal){
-  document.getElementById("mealExportTitle").textContent = "Export: " + meal.name;
-  document.getElementById("mealExportText").value = buildSingleMealExportText(meal);
-  document.getElementById("mealExportOverlay").classList.add("open");
-  document.getElementById("mealExportCopiedNote").classList.remove("show");
-}
-
-function buildFreezeSnapshotText(){
-  const items = [];
-  ["pantry","freezer","fresh"].forEach(kind => {
-    DATA[kind].forEach(g => {
-      g.items.forEach(it => {
-        const name = it[0];
-        const key = kind + "|" + g.category + "|" + name;
-        const entry = {kind, category: g.category, name, qty: qtyState[key] || 0};
-
-        const openedTs = qtyState[OPENED_PREFIX + key];
-        if(openedTs) entry.openedDate = isoDateFromTs(openedTs);
-
-        const openedCount = qtyState[OPENED_COUNT_PREFIX + key];
-        if(openedCount) entry.openedCount = openedCount;
-
-        const exp = qtyState[EXP_PREFIX + key];
-        if(exp) entry.expirationDate = exp;
-
-        if(kind === "fresh"){
-          const purchasedTs = qtyState[PURCHASE_PREFIX + key];
-          if(purchasedTs) entry.boughtDate = isoDateFromTs(purchasedTs);
-        }
-
-        if(BATCH_TRACKED_KEYS.has(key)){
-          entry.batches = getBatches(key).map(b => ({
-            qty: b.qty,
-            addedDate: b.added ? isoDateFromTs(b.added) : null,
-            expirationDate: b.exp || null
-          }));
-        }
-
-        items.push(entry);
-      });
-    });
-  });
-
-  const meals = MEALS.map(meal => ({
-    day: meal.day,
-    name: meal.name,
-    cooked: !!qtyState[MEALS_COOKED_PREFIX + meal.day],
-    hit: !!qtyState[MEAL_HIT_PREFIX + meal.day],
-    userNote: qtyState[MEAL_NOTE_PREFIX + meal.day] || null,
-    recipe: meal.recipe,
-    ingredientKeys: meal.ingredients.map(ing => ing.key)
-  }));
-
-  const snapshot = {
-    generatedAt: new Date().toISOString(),
-    items,
-    meals
-  };
-  return JSON.stringify(snapshot, null, 2);
-}
-
-// --- Export for Claude ---
-// Builds a compact, copy-pasteable summary of what's actually changed since this
-// artifact's built-in starting quantities — i.e. the stuff Claude has no way of
-// seeing on its own. Only reports deltas (changed item quantities + cooked meals)
-// rather than the entire pantry, to keep the paste short.
-function buildExportText(){
-  const lines = [];
-  const today = new Date().toLocaleDateString("en-US", {weekday:"long", month:"short", day:"numeric"});
-  lines.push("PANTRY SHELF EXPORT — " + today);
-  lines.push("");
-
-  const changed = [];
-  Object.keys(BASELINE_QTY).forEach(key => {
-    const before = BASELINE_QTY[key];
-    const after = (key in qtyState) ? qtyState[key] : before;
-    if(after !== before){
-      const parts = key.split("|"); // kind|category|item
-      changed.push({kind:parts[0], category:parts[1], item:parts[2], before, after});
-    }
-  });
-  // Also catch any items that only exist in synced state (e.g. added after this
-  // artifact version was built) but aren't in BASELINE_QTY at all.
-  Object.keys(qtyState).forEach(key => {
-    const parts = key.split("|");
-    if(parts.length === 3 && ["pantry","freezer","fresh"].includes(parts[0]) && !(key in BASELINE_QTY)){
-      changed.push({kind:parts[0], category:parts[1], item:parts[2], before:null, after:qtyState[key]});
-    }
-  });
-
-  if(changed.length){
-    lines.push("QUANTITY CHANGES (item: before → after):");
-    changed.sort((a,b) => a.kind.localeCompare(b.kind) || a.category.localeCompare(b.category));
-    changed.forEach(c => {
-      const beforeStr = c.before === null ? "new" : c.before;
-      lines.push(`- [${c.kind}/${c.category}] ${c.item}: ${beforeStr} → ${c.after}`);
-    });
-  } else {
-    lines.push("QUANTITY CHANGES: none since this artifact was built.");
-  }
-
-  lines.push("");
-  const mealLines = [];
-  const cookedMeals = [];
-  MEALS.forEach(meal => {
-    const cookedKey = MEALS_COOKED_PREFIX + meal.day;
-    if(qtyState[cookedKey] && !exportedMealDays.includes(meal.day)){
-      mealLines.push(`- ${meal.day}: ${meal.name} — cooked`);
-      cookedMeals.push(meal);
-    }
-  });
-  lines.push("MEALS COOKED THIS WEEK:");
-  lines.push(mealLines.length ? mealLines.join("\n") : "- none new since last export");
-
-  // Full recipe detail for each cooked meal, so Claude can log a locked-in copy
-  // to the running Sheet. Once a recipe is edited directly in the Sheet, that
-  // edited version becomes the source of truth for future reuse, not this block.
-  if(cookedMeals.length){
-    lines.push("");
-    lines.push("RECIPES (full detail for cooked meals):");
-    cookedMeals.forEach(meal => {
-      lines.push("");
-      lines.push(`--- ${meal.day}: ${meal.name} ---`);
-      lines.push(`Hit: ${qtyState[MEAL_HIT_PREFIX + meal.day] ? "yes 👍" : "not marked"}`);
-      const cookedMealNote = qtyState[MEAL_NOTE_PREFIX + meal.day];
-      if(cookedMealNote) lines.push(`Note: ${cookedMealNote}`);
-      if(meal.recipe){
-        if(meal.recipe.servings) lines.push(`Servings: ${meal.recipe.servings}`);
-        if(meal.recipe.ingredients && meal.recipe.ingredients.length){
-          lines.push("Ingredients:");
-          meal.recipe.ingredients.forEach(i => lines.push(`  - ${i}`));
-        }
-        if(meal.recipe.steps && meal.recipe.steps.length){
-          lines.push("Steps:");
-          meal.recipe.steps.forEach((s, idx) => lines.push(`  ${idx+1}. ${s}`));
-        }
-        if(meal.recipe.note) lines.push(`Recipe note: ${meal.recipe.note}`);
-      } else {
-        lines.push("(no recipe detail stored for this meal)");
-      }
-    });
-  }
-
-  return lines.join("\n");
-}
-
-const exportOverlay = document.getElementById("exportOverlay");
-const exportTextEl = document.getElementById("exportText");
-const copiedNote = document.getElementById("copiedNote");
-
-document.getElementById("exportBtn").addEventListener("click", () => {
-  exportTextEl.value = buildExportText();
-  exportOverlay.classList.add("open");
-  copiedNote.classList.remove("show");
-});
-
-document.getElementById("closeExportBtn").addEventListener("click", () => {
-  exportOverlay.classList.remove("open");
-});
-
-let exportOverlayDownOnBackdrop = false;
-exportOverlay.addEventListener("mousedown", (e) => {
-  exportOverlayDownOnBackdrop = (e.target === exportOverlay);
-});
-exportOverlay.addEventListener("click", (e) => {
-  if(e.target === exportOverlay && exportOverlayDownOnBackdrop) exportOverlay.classList.remove("open");
-  exportOverlayDownOnBackdrop = false;
-});
-
-document.getElementById("copyExportBtn").addEventListener("click", async () => {
-  exportTextEl.focus();
-  exportTextEl.select();
-  let copied = false;
-  try{
-    await navigator.clipboard.writeText(exportTextEl.value);
-    copied = true;
-  }catch(e){
-    try{ copied = document.execCommand("copy"); }catch(e2){ copied = false; }
-  }
-  if(copied){
-    await persistExportBaseline();
-  }
-  copiedNote.textContent = copied ? "Copied!" : "Couldn't auto-copy — text is selected, copy manually.";
-  copiedNote.classList.add("show");
-  setTimeout(() => copiedNote.classList.remove("show"), 2500);
-});
-
-// --- Freeze Snapshot (Full State) ---
-const freezeOverlay = document.getElementById("freezeOverlay");
-const freezeTextEl = document.getElementById("freezeText");
-const freezeCopiedNote = document.getElementById("freezeCopiedNote");
-
-document.getElementById("freezeBtn").addEventListener("click", () => {
-  freezeTextEl.value = buildFreezeSnapshotText();
-  freezeOverlay.classList.add("open");
-  freezeCopiedNote.classList.remove("show");
-});
-
-// Direct, no-clipboard way to tell the artifact "what's on screen right now
-// is correct" — e.g. right after a reconciliation import against the master
-// sheet. Without this, the only way to reset the export baseline was to open
-// Export for Claude and tap Copy, which quietly did the reset as a side
-// effect of copying text — meaning if that text never got pasted anywhere,
-// it wasn't clear whether anything had actually happened. This button does
-// the same reset on its own, with a plain confirmation, and nothing to lose.
-const resetBaselineOverlay = document.getElementById("resetBaselineOverlay");
-document.getElementById("resetBaselineBtn").addEventListener("click", () => {
-  resetBaselineOverlay.classList.add("open");
-});
-document.getElementById("cancelResetBaselineBtn").addEventListener("click", () => {
-  resetBaselineOverlay.classList.remove("open");
-});
-let resetBaselineOverlayDownOnBackdrop = false;
-resetBaselineOverlay.addEventListener("mousedown", (e) => {
-  resetBaselineOverlayDownOnBackdrop = (e.target === resetBaselineOverlay);
-});
-resetBaselineOverlay.addEventListener("click", (e) => {
-  if(e.target === resetBaselineOverlay && resetBaselineOverlayDownOnBackdrop) resetBaselineOverlay.classList.remove("open");
-  resetBaselineOverlayDownOnBackdrop = false;
-});
-document.getElementById("confirmResetBaselineBtn").addEventListener("click", async () => {
-  resetBaselineOverlay.classList.remove("open");
-  const success = await persistExportBaseline();
-  alert(success
-    ? "Done — current amounts are now the baseline. Future exports will only show changes from this point forward."
-    : "Couldn't save that right now (sync issue) — nothing changed. Try again in a moment.");
-});
-
-document.getElementById("closeFreezeBtn").addEventListener("click", () => {
-  freezeOverlay.classList.remove("open");
-});
-
-let freezeOverlayDownOnBackdrop = false;
-freezeOverlay.addEventListener("mousedown", (e) => {
-  freezeOverlayDownOnBackdrop = (e.target === freezeOverlay);
-});
-freezeOverlay.addEventListener("click", (e) => {
-  if(e.target === freezeOverlay && freezeOverlayDownOnBackdrop) freezeOverlay.classList.remove("open");
-  freezeOverlayDownOnBackdrop = false;
-});
-
-document.getElementById("copyFreezeBtn").addEventListener("click", async () => {
-  freezeTextEl.focus();
-  freezeTextEl.select();
-  let copied = false;
-  try{
-    await navigator.clipboard.writeText(freezeTextEl.value);
-    copied = true;
-  }catch(e){
-    try{ copied = document.execCommand("copy"); }catch(e2){ copied = false; }
-  }
-  freezeCopiedNote.textContent = copied ? "Copied!" : "Couldn't auto-copy — text is selected, copy manually.";
-  freezeCopiedNote.classList.add("show");
-  setTimeout(() => freezeCopiedNote.classList.remove("show"), 2500);
-});
-
-// --- Export a single meal ---
-const mealExportOverlay = document.getElementById("mealExportOverlay");
-const mealExportTextEl = document.getElementById("mealExportText");
-const mealExportCopiedNote = document.getElementById("mealExportCopiedNote");
-
-document.getElementById("closeMealExportBtn").addEventListener("click", () => {
-  mealExportOverlay.classList.remove("open");
-});
-
-let mealExportOverlayDownOnBackdrop = false;
-mealExportOverlay.addEventListener("mousedown", (e) => {
-  mealExportOverlayDownOnBackdrop = (e.target === mealExportOverlay);
-});
-mealExportOverlay.addEventListener("click", (e) => {
-  if(e.target === mealExportOverlay && mealExportOverlayDownOnBackdrop) mealExportOverlay.classList.remove("open");
-  mealExportOverlayDownOnBackdrop = false;
-});
-
-document.getElementById("copyMealExportBtn").addEventListener("click", async () => {
-  mealExportTextEl.focus();
-  mealExportTextEl.select();
-  let copied = false;
-  try{
-    await navigator.clipboard.writeText(mealExportTextEl.value);
-    copied = true;
-  }catch(e){
-    try{ copied = document.execCommand("copy"); }catch(e2){ copied = false; }
-  }
-  mealExportCopiedNote.textContent = copied ? "Copied!" : "Couldn't auto-copy — text is selected, copy manually.";
-  mealExportCopiedNote.classList.add("show");
-  setTimeout(() => mealExportCopiedNote.classList.remove("show"), 2500);
-});
-
-// --- Import Instacart Order ---
-const importOverlay = document.getElementById("importOverlay");
-const importText = document.getElementById("importText");
-const importPasteStep = document.getElementById("importPasteStep");
-const importReviewStep = document.getElementById("importReviewStep");
-const importReviewList = document.getElementById("importReviewList");
-const ALL_SECTIONS = ["pantry","freezer","fresh"];
-const ALL_CATEGORIES_BY_SECTION = {};
-ALL_SECTIONS.forEach(s => { ALL_CATEGORIES_BY_SECTION[s] = DATA[s].map(g => g.category); });
-
-let importRows = []; // working state for the review screen
-
-function openImportModal(){
-  importText.value = "";
-  importPasteStep.style.display = "";
-  importReviewStep.style.display = "none";
-  document.getElementById("stampTodayToggle").checked = false;
-  importOverlay.classList.add("open");
-}
-function closeImportModal(){
-  importOverlay.classList.remove("open");
-}
-
-document.getElementById("importBtn").addEventListener("click", openImportModal);
-document.getElementById("closeImportBtn").addEventListener("click", closeImportModal);
-document.getElementById("backImportBtn").addEventListener("click", () => {
-  importPasteStep.style.display = "";
-  importReviewStep.style.display = "none";
-});
-let importOverlayDownOnBackdrop = false;
-importOverlay.addEventListener("mousedown", (e) => {
-  importOverlayDownOnBackdrop = (e.target === importOverlay);
-});
-importOverlay.addEventListener("click", (e) => {
-  if(e.target === importOverlay && importOverlayDownOnBackdrop) closeImportModal();
-  importOverlayDownOnBackdrop = false;
-});
-
-document.getElementById("parseImportBtn").addEventListener("click", () => {
-  const parsed = parseInstacartText(importText.value);
-  importRows = parsed.map(p => {
-    const match = findBestMatch(p.name);
-    const guess = p.placementOverride || guessItemPlacement(p.name);
-    return {
-      raw: p.raw,
-      qty: p.qty,
-      parsedName: p.name,
-      match, // {kind, category, item, score} or null
-      hasOverride: !!p.placementOverride,
-      // Only trust a match enough to pre-select "this is a restock" when
-      // confidence is high. Borderline matches (findBestMatch's MATCH_MED..
-      // MATCH_HIGH range) still show as "Possible match: X" for reference,
-      // but default to "new item" so the smart category guess below is what
-      // actually gets applied, rather than getting hidden behind an
-      // auto-picked restock of an unrelated product.
-      resolution: (match && match.score >= MATCH_HIGH) ? "match" : "new",
-      newSection: guess.section,
-      newCategory: guess.category,
-      newName: p.name
-    };
-  });
-  renderImportReview();
-  importPasteStep.style.display = "none";
-  importReviewStep.style.display = "";
-});
-
-function renderImportReview(){
-  importReviewList.innerHTML = "";
-  importRows.forEach((row, idx) => {
-    const div = document.createElement("div");
-    div.className = "review-row";
-
-    const nameEl = document.createElement("div");
-    nameEl.className = "raw-name";
-    nameEl.textContent = row.parsedName + (row.qty !== 1 ? " (×" + row.qty + ")" : "");
-    div.appendChild(nameEl);
-
-    if(row.match){
-      const info = document.createElement("div");
-      info.className = "match-info";
-      const confidence = row.match.score >= MATCH_HIGH ? "Match" : "Possible match";
-      info.innerHTML = confidence + ": " + row.match.item + " (" + row.match.kind + " / " + row.match.category + ")";
-      div.appendChild(info);
-    }
-
-    if(row.hasOverride && row.resolution === "new"){
-      const overrideInfo = document.createElement("div");
-      overrideInfo.className = "match-info";
-      overrideInfo.textContent = "Category specified: " + row.newSection + " / " + row.newCategory;
-      div.appendChild(overrideInfo);
-    }
-
-    const select = document.createElement("select");
-    if(row.match){
-      const optMatch = document.createElement("option");
-      optMatch.value = "match";
-      optMatch.textContent = "Confirm as: " + row.match.item;
-      select.appendChild(optMatch);
-    }
-    const optNew = document.createElement("option");
-    optNew.value = "new";
-    optNew.textContent = "This is a new item";
-    select.appendChild(optNew);
-    select.value = row.resolution;
-    select.addEventListener("change", () => {
-      row.resolution = select.value;
-      renderImportReview();
-    });
-    div.appendChild(select);
-    div.appendChild(document.createElement("br"));
-
-    if(row.resolution === "new"){
-      // One combined dropdown listing every existing category across all three
-      // sections (grouped visually by section), rather than only showing
-      // categories for whichever section happened to be guessed. Picking an
-      // option sets both the section and category together — no need to
-      // pick a section first.
-      const ADD_NEW_VALUE = "__add_new_category__";
-      const currentPairKey = row.newSection + "|" + row.newCategory;
-      let isKnownPair = false;
-
-      const catSelect = document.createElement("select");
-      ALL_SECTIONS.forEach(s => {
-        const cats = (ALL_CATEGORIES_BY_SECTION[s] || []).slice().sort();
-        if(cats.length === 0) return;
-        const group = document.createElement("optgroup");
-        group.label = s.charAt(0).toUpperCase() + s.slice(1);
-        cats.forEach(c => {
-          const opt = document.createElement("option");
-          const pairKey = s + "|" + c;
-          opt.value = pairKey;
-          opt.textContent = c;
-          if(pairKey === currentPairKey){
-            opt.selected = true;
-            isKnownPair = true;
-          }
-          group.appendChild(opt);
-        });
-        catSelect.appendChild(group);
-      });
-      const addNewOpt = document.createElement("option");
-      addNewOpt.value = ADD_NEW_VALUE;
-      addNewOpt.textContent = "+ Add new category…";
-      if(!isKnownPair) addNewOpt.selected = true;
-      catSelect.appendChild(addNewOpt);
-      catSelect.addEventListener("change", () => {
-        if(catSelect.value === ADD_NEW_VALUE){
-          row.newCategory = "";
-        } else {
-          const sep = catSelect.value.indexOf("|");
-          row.newSection = catSelect.value.slice(0, sep);
-          row.newCategory = catSelect.value.slice(sep + 1);
-        }
-        renderImportReview();
-      });
-      div.appendChild(catSelect);
-
-      if(!isKnownPair){
-        const newSectionSelect = document.createElement("select");
-        ALL_SECTIONS.forEach(s => {
-          const opt = document.createElement("option");
-          opt.value = s; opt.textContent = s.charAt(0).toUpperCase() + s.slice(1);
-          if(s === row.newSection) opt.selected = true;
-          newSectionSelect.appendChild(opt);
-        });
-        newSectionSelect.addEventListener("change", () => { row.newSection = newSectionSelect.value; });
-        div.appendChild(newSectionSelect);
-
-        const newCatInput = document.createElement("input");
-        newCatInput.type = "text";
-        newCatInput.placeholder = "New category name";
-        newCatInput.value = row.newCategory;
-        newCatInput.style.display = "block";
-        newCatInput.style.width = "100%";
-        newCatInput.style.marginTop = "6px";
-        newCatInput.addEventListener("input", () => { row.newCategory = newCatInput.value.trim() || "Uncategorized"; });
-        div.appendChild(newCatInput);
-      }
-
-      const nameInput = document.createElement("input");
-      nameInput.type = "text";
-      nameInput.value = row.newName;
-      nameInput.style.display = "block";
-      nameInput.style.width = "100%";
-      nameInput.style.marginTop = "6px";
-      nameInput.addEventListener("input", () => { row.newName = nameInput.value.trim(); });
-      div.appendChild(nameInput);
-
-      const badge = document.createElement("span");
-      badge.className = "new-badge";
-      badge.textContent = "New item";
-      nameEl.appendChild(badge);
-    } else {
-      const badge = document.createElement("span");
-      badge.className = "match-badge";
-      badge.textContent = "Restock";
-      nameEl.appendChild(badge);
-    }
-
-    importReviewList.appendChild(div);
-  });
-}
-
-document.getElementById("confirmImportBtn").addEventListener("click", async () => {
-  const stampToday = document.getElementById("stampTodayToggle").checked;
-
-  // Check every line BEFORE applying anything. Silently clamping a negative
-  // result to 0 hides a real mistake (e.g. subtracting more than what's
-  // actually on hand in a reconciliation paste) — better to stop the whole
-  // import and let the person fix the input than to guess and go quiet.
-  const wouldGoNegative = [];
-  importRows.forEach(row => {
-    if(row.resolution === "match" && row.match){
-      const key = row.match.kind + "|" + row.match.category + "|" + row.match.item;
-      const current = qtyState[key] || 0;
-      const result = Math.round((current + row.qty) * 100) / 100;
-      if(result < 0){
-        wouldGoNegative.push(`${row.match.item}: ${current} ${row.qty >= 0 ? "+" : ""}${row.qty} = ${result}`);
-      }
-    } else if(row.qty < 0){
-      // A "new item" line with a negative quantity can't mean anything —
-      // there's no existing stock for it to subtract from.
-      wouldGoNegative.push(`${row.parsedName}: new item can't start at a negative quantity (${row.qty})`);
-    }
-  });
-  if(wouldGoNegative.length){
-    alert("Import stopped — these lines would push a quantity below 0, which isn't allowed:\n\n" +
-      wouldGoNegative.join("\n") +
-      "\n\nFix the amounts (nothing was changed) and try again.");
-    return;
-  }
-
-  importRows.forEach(row => {
-    if(row.resolution === "match" && row.match){
-      const key = row.match.kind + "|" + row.match.category + "|" + row.match.item;
-      const current = qtyState[key] || 0;
-      commitQty(key, current + row.qty, {skipPurchaseStamp: !stampToday});
-    } else {
-      const kind = row.newSection, category = row.newCategory || "Uncategorized", item = row.newName || row.parsedName;
-      const key = kind + "|" + category + "|" + item;
-      if(!customItems.some(ci => ci.kind === kind && ci.category === category && ci.item === item)){
-        customItems.push({kind, category, item});
-        mergeCustomItemIntoData(kind, category, item);
-      }
-      commitQty(key, row.qty, {skipPurchaseStamp: !stampToday});
-    }
-  });
-  const stateOk = await persistSharedState();
-  const customOk = await persistCustomItems();
-  closeImportModal();
-  render();
-  if(!stateOk || !customOk){
-    alert("Heads up: this device saved the imported items locally, but the save to shared storage failed, so it may not show up on other devices or after a reload. Try importing again in a moment.");
-  }
-});
-
-// --- Update This Week's Meals ---
-const mealsImportOverlay = document.getElementById("mealsImportOverlay");
-const mealsImportText = document.getElementById("mealsImportText");
-const mealsPasteStep = document.getElementById("mealsPasteStep");
-let pendingMeals = [];
-
-function openMealsImportModal(){
-  mealsImportText.value = "";
-  mealsPasteStep.style.display = "";
-  mealsImportOverlay.classList.add("open");
-}
-function closeMealsImportModal(){
-  mealsImportOverlay.classList.remove("open");
-}
-
-document.getElementById("mealsImportBtn").addEventListener("click", openMealsImportModal);
-document.getElementById("closeMealsImportBtn").addEventListener("click", closeMealsImportModal);
-let mealsOverlayDownOnBackdrop = false;
-mealsImportOverlay.addEventListener("mousedown", (e) => {
-  mealsOverlayDownOnBackdrop = (e.target === mealsImportOverlay);
-});
-mealsImportOverlay.addEventListener("click", (e) => {
-  if(e.target === mealsImportOverlay && mealsOverlayDownOnBackdrop) closeMealsImportModal();
-  mealsOverlayDownOnBackdrop = false;
-});
-
-document.getElementById("parseMealsBtn").addEventListener("click", async () => {
-  pendingMeals = parseMealPlanText(mealsImportText.value);
-  if(!pendingMeals.length){
-    alert("Couldn't find any meals in that text — check it matches the Day/Name/Ingredients/Steps format and try again.");
-    return;
-  }
-  MEALS.length = 0;
-  pendingMeals.forEach(m => MEALS.push(m));
-  // Fresh week means fresh checkboxes — clear any "cooked" flags from the prior
-  // week so old meals don't show as already-cooked under new names.
-  Object.keys(qtyState).forEach(k => {
-    if(k.startsWith(MEALS_COOKED_PREFIX) || k.startsWith(MEALS_AMOUNTS_PREFIX) || k.startsWith(MEAL_HIT_PREFIX) || k.startsWith(MEAL_NOTE_PREFIX)) delete qtyState[k];
-  });
-  exportedMealDays = [];
-  await window.storage.set(EXPORTED_MEALS_KEY, JSON.stringify(exportedMealDays), true).catch(() => {});
-  const mealsOk = await persistMeals();
-  const stateOk = await persistSharedState();
-  closeMealsImportModal();
-  render();
-  if(!mealsOk || !stateOk){
-    alert("Heads up: this device saved the new meal plan locally, but the save to shared storage failed, so it may not show up on other devices or after a reload. Try again in a moment, and check your connection.");
-  }
-});
-
-loadSharedState();
-setInterval(() => loadSharedState(true), 20000);
-
-
+// ==== Init ====
+loadAll();
+setInterval(() => loadAll(true), 20000);
 </script>
 </body>
 </html>
