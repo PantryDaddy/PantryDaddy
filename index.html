@@ -103,14 +103,16 @@
     font-weight:600;
     margin:0 0 10px;
   }
+  .meal-card{
+    padding:8px 0;
+    border-top:1px solid var(--line);
+  }
+  .meal-card:first-of-type{border-top:none;}
   .meal-row{
     display:flex;
     align-items:center;
     gap:10px;
-    padding:8px 0;
-    border-top:1px solid var(--line);
   }
-  .meal-row:first-of-type{border-top:none;}
   .meal-day{
     font-size:11px;
     font-weight:700;
@@ -122,6 +124,7 @@
   }
   .meal-name-input{
     flex:1;
+    min-width:0;
     border:1px solid transparent;
     background:transparent;
     font-size:14.5px;
@@ -142,6 +145,40 @@
     cursor:pointer;
   }
   .meal-cooked-label input{accent-color:var(--pantry);width:16px;height:16px;}
+  .recipe-toggle{
+    margin:6px 0 0 70px;
+    border:none;
+    background:none;
+    color:var(--freezer);
+    font-size:12px;
+    font-weight:600;
+    cursor:pointer;
+    padding:2px 0;
+  }
+  .meal-recipe{
+    margin:8px 0 0 70px;
+    padding:10px 12px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:8px;
+    font-size:13.5px;
+    line-height:1.5;
+  }
+  .meal-recipe-empty{color:var(--ink-soft);font-style:italic;}
+  .meal-servings{font-weight:700;margin-bottom:6px;}
+  .meal-last-cooked{font-size:12px;color:var(--ink-soft);margin-bottom:6px;}
+  .meal-recipe-subtitle{
+    font-weight:700;
+    font-size:11px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:8px 0 4px;
+  }
+  .meal-recipe-subtitle:first-child{margin-top:0;}
+  .meal-ingredients, .meal-steps{margin:0;padding-left:20px;}
+  .meal-ingredients li, .meal-steps li{margin-bottom:3px;}
+  .meal-note{margin-top:8px;color:var(--ink-soft);font-style:italic;}
   .section-block{margin-top:22px;}
   .shelf-tag{
     display:inline-block;
@@ -267,8 +304,9 @@
     background:var(--paper);
     font-family:inherit;
   }
-  .add-item-row{display:flex;gap:8px;}
-  .add-item-row > *{flex:1;}
+  .add-item-row{display:flex;gap:8px;min-width:0;}
+  .add-item-row > *{flex:1;min-width:0;}
+  .add-item-row .qty-field{flex:0 1 56px;min-width:40px;}
   .add-item-form button{
     margin-top:4px;
     padding:10px;
@@ -374,10 +412,16 @@ async function apiPost(body){
 
 // ==== State ====
 let items = [];   // [{section, category, item, qty}]
-let meals = [];   // [{day, meal, cooked}]
+let meals = [];   // [{day, meal, cooked}]  -- this week's plan only, "meal" is just a name
+let recipes = [];  // [{name, servings, ingredients: [...], steps: [...], note, lastCooked}]  -- permanent library
 let activeScope = "all";
 let query = "";
 let suppressPollUntil = 0; // skip the next poll right after a local save, to avoid a race overwriting an in-flight edit
+let expandedMealDays = new Set(); // which meal recipe panels are open — persists across re-renders
+
+function linesToArray(text){
+  return String(text || "").split("\n").map(l => l.trim()).filter(Boolean);
+}
 
 function setSyncStatus(mode, text){
   const el = document.getElementById("syncStatus");
@@ -390,10 +434,22 @@ function setSyncStatus(mode, text){
 async function loadAll(isBackgroundPoll){
   if(isBackgroundPoll && Date.now() < suppressPollUntil) return;
   try{
-    const [freshItems, freshMeals] = await Promise.all([apiGet("items"), apiGet("meals")]);
+    const [freshItems, freshMeals, freshRecipes] = await Promise.all([apiGet("items"), apiGet("meals"), apiGet("recipes")]);
     // section is matched case/whitespace-insensitively so it doesn't matter how it was typed in the sheet
     items = freshItems.map(it => ({section: String(it.section || "").trim().toLowerCase(), category: String(it.category || "").trim(), item: String(it.item || "").trim(), qty: Number(it.qty) || 0}));
-    meals = freshMeals.map(m => ({day: m.day, meal: m.meal, cooked: String(m.cooked).trim().toLowerCase() === "true"}));
+    meals = freshMeals.map(m => ({
+      day: m.day,
+      meal: m.meal,
+      cooked: String(m.cooked).trim().toLowerCase() === "true"
+    }));
+    recipes = freshRecipes.map(r => ({
+      name: String(r.name || "").trim(),
+      servings: String(r.servings || "").trim(),
+      ingredients: linesToArray(r.ingredients),
+      steps: linesToArray(r.steps),
+      note: String(r.note || "").trim(),
+      lastCooked: String(r.lastCooked || "").trim()
+    }));
     setSyncStatus("ok", "Synced");
     render();
   }catch(err){
@@ -438,6 +494,29 @@ async function saveMeal(m){
   }
 }
 
+function findRecipe(name){
+  const key = String(name || "").trim().toLowerCase();
+  if(!key) return null;
+  return recipes.find(r => r.name.toLowerCase() === key) || null;
+}
+
+// Stamps today's date onto a recipe's "last cooked" field when its meal
+// gets checked off on the site. Non-critical — failure here shouldn't block
+// the meal save itself, so it's kept separate from saveMeal().
+async function stampLastCooked(mealName){
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD, local browser clock
+  try{
+    await apiPost({resource:"recipes", action:"upsert", name: mealName, lastCooked: today});
+    const recipe = findRecipe(mealName);
+    if(recipe){
+      recipe.lastCooked = today;
+      render();
+    }
+  }catch(err){
+    // Silent — the Cooked checkbox itself already saved fine; this is a nice-to-have.
+  }
+}
+
 // ==== Rendering ====
 function render(){
   const main = document.getElementById("main");
@@ -460,6 +539,9 @@ function renderMeals(container){
   block.appendChild(title);
 
   meals.forEach(m => {
+    const card = document.createElement("div");
+    card.className = "meal-card";
+
     const row = document.createElement("div");
     row.className = "meal-row";
 
@@ -484,15 +566,94 @@ function renderMeals(container){
     checkbox.type = "checkbox";
     checkbox.checked = m.cooked;
     checkbox.addEventListener("change", () => {
+      const becomingCooked = checkbox.checked && !m.cooked;
       m.cooked = checkbox.checked;
       input.className = "meal-name-input" + (m.cooked ? " cooked" : "");
       saveMeal(m);
+      if(becomingCooked && m.meal.trim()) stampLastCooked(m.meal.trim());
     });
     label.appendChild(checkbox);
     label.appendChild(document.createTextNode("Cooked"));
     row.appendChild(label);
 
-    block.appendChild(row);
+    card.appendChild(row);
+
+    const recipe = findRecipe(m.meal);
+    const hasRecipe = !!recipe && (recipe.ingredients.length > 0 || recipe.steps.length > 0);
+    const isOpen = expandedMealDays.has(m.day);
+
+    const toggle = document.createElement("button");
+    toggle.className = "recipe-toggle";
+    toggle.textContent = (isOpen ? "▾ " : "▸ ") + (hasRecipe ? "Recipe" : "No recipe yet");
+    toggle.onclick = () => {
+      if(expandedMealDays.has(m.day)) expandedMealDays.delete(m.day);
+      else expandedMealDays.add(m.day);
+      render();
+    };
+    card.appendChild(toggle);
+
+    if(isOpen){
+      const recipeEl = document.createElement("div");
+      recipeEl.className = "meal-recipe";
+
+      if(!hasRecipe){
+        const empty = document.createElement("div");
+        empty.className = "meal-recipe-empty";
+        empty.textContent = "No recipe saved for this meal yet.";
+        recipeEl.appendChild(empty);
+      } else {
+        if(recipe.servings){
+          const servings = document.createElement("div");
+          servings.className = "meal-servings";
+          servings.textContent = "Serves " + recipe.servings;
+          recipeEl.appendChild(servings);
+        }
+        if(recipe.lastCooked){
+          const last = document.createElement("div");
+          last.className = "meal-last-cooked";
+          last.textContent = "Last cooked: " + recipe.lastCooked;
+          recipeEl.appendChild(last);
+        }
+        if(recipe.ingredients.length){
+          const ingTitle = document.createElement("div");
+          ingTitle.className = "meal-recipe-subtitle";
+          ingTitle.textContent = "Ingredients";
+          recipeEl.appendChild(ingTitle);
+          const ul = document.createElement("ul");
+          ul.className = "meal-ingredients";
+          recipe.ingredients.forEach(line => {
+            const li = document.createElement("li");
+            li.textContent = line;
+            ul.appendChild(li);
+          });
+          recipeEl.appendChild(ul);
+        }
+        if(recipe.steps.length){
+          const stepsTitle = document.createElement("div");
+          stepsTitle.className = "meal-recipe-subtitle";
+          stepsTitle.textContent = "Steps";
+          recipeEl.appendChild(stepsTitle);
+          const ol = document.createElement("ol");
+          ol.className = "meal-steps";
+          recipe.steps.forEach(line => {
+            const li = document.createElement("li");
+            li.textContent = line;
+            ol.appendChild(li);
+          });
+          recipeEl.appendChild(ol);
+        }
+        if(recipe.note){
+          const note = document.createElement("div");
+          note.className = "meal-note";
+          note.textContent = "Note: " + recipe.note;
+          recipeEl.appendChild(note);
+        }
+      }
+
+      card.appendChild(recipeEl);
+    }
+
+    block.appendChild(card);
   });
 
   container.appendChild(block);
@@ -660,7 +821,7 @@ function renderAddItemForm(container){
   qtyInput.min = "0";
   qtyInput.step = "1";
   qtyInput.value = "1";
-  qtyInput.style.flex = "0 0 70px";
+  qtyInput.classList.add("qty-field");
   row.appendChild(qtyInput);
 
   form.appendChild(row);
