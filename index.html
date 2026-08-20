@@ -17,6 +17,8 @@
     --freezer-soft:#E4EEF2;
     --tag:#B5542A;
     --tag-soft:#F7E4D7;
+    --household:#6B5B7A;
+    --household-soft:#EFE9F2;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -73,6 +75,7 @@
   .chip.active[data-scope="pantry"]{background:var(--pantry);color:#fff;border-color:var(--pantry);}
   .chip.active[data-scope="freezer"]{background:var(--freezer);color:#fff;border-color:var(--freezer);}
   .chip.active[data-scope="fridge"]{background:var(--tag);color:#fff;border-color:var(--tag);}
+  .chip.active[data-scope="household"]{background:var(--household);color:#fff;border-color:var(--household);}
   .sync-status{
     font-size:11.5px;
     font-weight:600;
@@ -90,6 +93,54 @@
   .sync-status.error{color:var(--tag);}
   .sync-status.error .dot{background:var(--tag);}
   main{padding:14px 16px 0;}
+  .actions-bar{margin-bottom:14px;}
+  .actions-toggle{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    border:1px solid var(--line);
+    background:var(--card);
+    color:var(--ink);
+    padding:8px 14px;
+    border-radius:20px;
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+    user-select:none;
+  }
+  .actions-toggle .chevron{
+    font-size:11px;
+    display:inline-block;
+    transition:transform 0.15s ease;
+  }
+  .actions-toggle .chevron.open{transform:rotate(180deg);}
+  .actions-menu{
+    display:none;
+    flex-direction:column;
+    gap:6px;
+    margin-top:8px;
+    padding:8px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+  }
+  .actions-menu.open{display:flex;}
+  .actions-menu-item{
+    text-align:left;
+    border:1px solid var(--line);
+    background:var(--paper);
+    color:var(--ink);
+    padding:10px 12px;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .actions-menu-item:hover{background:var(--card);}
+  .content-divider{
+    border-top:1px solid var(--line);
+    margin:6px 0 20px;
+  }
   .meals-block{
     background:var(--card);
     border:1px solid var(--line);
@@ -98,11 +149,17 @@
     margin-bottom:22px;
   }
   .meals-title{
-    font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;
-    font-size:16px;
-    font-weight:600;
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:5px 10px 4px;
+    border-radius:3px;
     margin:0 0 10px;
     cursor:pointer;
+    background:var(--pantry-soft);
+    color:var(--pantry);
   }
   .meal-card{
     padding:10px 0;
@@ -265,6 +322,7 @@
   .shelf-tag.pantry{background:var(--pantry-soft);color:var(--pantry);}
   .shelf-tag.freezer{background:var(--freezer-soft);color:var(--freezer);}
   .shelf-tag.fridge{background:var(--tag-soft);color:var(--tag);}
+  .shelf-tag.household{background:var(--household-soft);color:var(--household);}
   .category-title{
     font-size:14px;
     font-weight:700;
@@ -509,6 +567,7 @@
     <div class="chip" data-scope="pantry">Pantry</div>
     <div class="chip" data-scope="freezer">Freezer</div>
     <div class="chip" data-scope="fridge">Fridge</div>
+    <div class="chip" data-scope="household">Household</div>
   </div>
   <div class="sync-status" id="syncStatus"><span class="dot"></span><span id="syncText">Loading…</span></div>
 </header>
@@ -555,6 +614,16 @@ let expandedMealDays = new Set(); // which meal recipe panels are open — persi
 let editingNoteDay = null; // which meal's note editor is open, if any (only one at a time)
 let mealsExpanded = true; // whether the whole "This Week's Meals" section is open — persists across re-renders
 let addItemsExpanded = false; // whether the "Add Items" section is open — persists across re-renders
+let mealsImportExpanded = false; // whether "Update This Week's Meals" is open — persists across re-renders
+let purchasesImportExpanded = false; // whether "Log a Grocery Purchase" is open — persists across re-renders
+let actionsMenuOpen = false; // whether the "Actions" dropdown menu is open — persists across re-renders
+
+// The app's four browsing sections and their display labels — used for the
+// filter chips, the shelf tags above each group of items, and the Section
+// dropdown in Add Items. Adding a new section later just means adding it
+// here (plus a matching CSS color and chip in the header markup).
+const SECTIONS = ["pantry", "freezer", "fridge", "household"];
+const SECTION_LABELS = {pantry: "Pantry", freezer: "Freezer", fridge: "Fridge", household: "Household"};
 
 // Splits a recipe's Ingredients/Steps cell into a list. Accepts either a
 // real newline between items (how early recipes were entered, e.g. via CSV
@@ -847,11 +916,65 @@ function render(){
   const main = document.getElementById("main");
   main.innerHTML = "";
 
-  renderAddItemForm(main);
-  renderPurchasesImport(main);
+  renderActionsBar(main);
+  if(addItemsExpanded) renderAddItemForm(main);
+  if(purchasesImportExpanded) renderPurchasesImport(main);
+  if(mealsImportExpanded) renderMealsImport(main);
+
+  const divider = document.createElement("div");
+  divider.className = "content-divider";
+  main.appendChild(divider);
+
   if(!query.trim()) renderMeals(main);
-  if(!query.trim()) renderMealsImport(main);
   renderItems(main);
+}
+
+// The "Actions" menu is a directory to the app's other modules (Add Items,
+// Log a Grocery Purchase, Update This Week's Meals) — tucked away here
+// instead of sitting inline as separate cards, so the page opens straight
+// to This Week's Meals and the pantry list. Picking a menu item just opens
+// that module's existing collapsible panel (same state vars/persistence as
+// before) and scrolls to it; the menu itself closes right after.
+function renderActionsBar(container){
+  const bar = document.createElement("div");
+  bar.className = "actions-bar";
+
+  const toggle = document.createElement("div");
+  toggle.className = "actions-toggle";
+  const label = document.createElement("span");
+  label.textContent = "Actions";
+  toggle.appendChild(label);
+  const chevron = document.createElement("span");
+  chevron.className = "chevron" + (actionsMenuOpen ? " open" : "");
+  chevron.textContent = "▾";
+  toggle.appendChild(chevron);
+  toggle.onclick = () => { actionsMenuOpen = !actionsMenuOpen; render(); };
+  bar.appendChild(toggle);
+
+  const menu = document.createElement("div");
+  menu.className = "actions-menu" + (actionsMenuOpen ? " open" : "");
+
+  const modules = [
+    {label: "Add Items", blockId: "addItemsBlock", open: () => { addItemsExpanded = true; }},
+    {label: "Log a Grocery Purchase", blockId: "purchasesImportBlock", open: () => { purchasesImportExpanded = true; }},
+    {label: "Update This Week's Meals", blockId: "mealsImportBlock", open: () => { mealsImportExpanded = true; }}
+  ];
+  modules.forEach(mod => {
+    const item = document.createElement("button");
+    item.className = "actions-menu-item";
+    item.textContent = mod.label;
+    item.onclick = () => {
+      mod.open();
+      actionsMenuOpen = false;
+      render();
+      const el = document.getElementById(mod.blockId);
+      if(el) el.scrollIntoView({behavior: "smooth", block: "start"});
+    };
+    menu.appendChild(item);
+  });
+  bar.appendChild(menu);
+
+  container.appendChild(bar);
 }
 
 function renderMeals(container){
@@ -1052,7 +1175,10 @@ function renderMeals(container){
 
 function renderMealsImport(container){
   const block = document.createElement("details");
+  block.id = "mealsImportBlock";
   block.className = "bulk-update-block";
+  block.open = mealsImportExpanded;
+  block.addEventListener("toggle", () => { mealsImportExpanded = block.open; });
 
   const summary = document.createElement("summary");
   summary.textContent = "Update This Week's Meals";
@@ -1119,7 +1245,10 @@ function renderMealsImport(container){
 
 function renderPurchasesImport(container){
   const block = document.createElement("details");
+  block.id = "purchasesImportBlock";
   block.className = "bulk-update-block";
+  block.open = purchasesImportExpanded;
+  block.addEventListener("toggle", () => { purchasesImportExpanded = block.open; });
 
   const summary = document.createElement("summary");
   summary.textContent = "Log a Grocery Purchase";
@@ -1176,7 +1305,7 @@ function renderPurchasesImport(container){
 }
 
 function renderItems(container){
-  const sections = activeScope === "all" ? ["pantry", "freezer", "fridge"] : [activeScope];
+  const sections = activeScope === "all" ? SECTIONS : [activeScope];
   const q = query.trim().toLowerCase();
   let totalShown = 0;
 
@@ -1189,7 +1318,7 @@ function renderItems(container){
 
     const tag = document.createElement("div");
     tag.className = "shelf-tag " + section;
-    tag.textContent = section === "pantry" ? "Pantry" : section === "freezer" ? "Freezer" : "Fridge";
+    tag.textContent = SECTION_LABELS[section] || section;
     block.appendChild(tag);
 
     // group categories case/whitespace-insensitively, but display using the first-seen casing
@@ -1305,6 +1434,7 @@ function renderItems(container){
 // line can override that default for itself with "| section | category".
 function renderAddItemForm(container){
   const block = document.createElement("details");
+  block.id = "addItemsBlock";
   block.className = "add-item-block";
   block.open = addItemsExpanded;
   block.addEventListener("toggle", () => { addItemsExpanded = block.open; });
@@ -1328,10 +1458,10 @@ function renderAddItemForm(container){
   sectionField.appendChild(sectionLabel);
   const sectionSelect = document.createElement("select");
   sectionSelect.title = "Default section for lines below that don't specify their own";
-  ["pantry", "freezer", "fridge"].forEach(s => {
+  SECTIONS.forEach(s => {
     const opt = document.createElement("option");
     opt.value = s;
-    opt.textContent = s === "pantry" ? "Pantry" : s === "freezer" ? "Freezer" : "Fridge";
+    opt.textContent = SECTION_LABELS[s] || s;
     sectionSelect.appendChild(opt);
   });
   sectionField.appendChild(sectionSelect);
