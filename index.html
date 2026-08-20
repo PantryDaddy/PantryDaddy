@@ -500,6 +500,113 @@ function linesToArray(text){
   return String(text || "").split(/\n|\s*\|\s*/).map(l => l.trim()).filter(Boolean);
 }
 
+// Parses a pasted weekly meal plan — the format Claude outputs in chat when
+// it finalizes a plan. Lets a whole week get typed/pasted in from anywhere
+// (a phone included) with no Sheet or backend access needed on the writing
+// end at all — the page itself does the writing once this is submitted.
+//   Day: Monday
+//   Name: Sheet-Pan Salmon with Green Beans & Rice
+//   Servings: 4
+//   Ingredients:
+//   - 1 lb salmon fillet
+//   - 1 cup jasmine rice
+//   Steps:
+//   1. Preheat oven to 400°F.
+//   2. Roast salmon 12-15 min until it flakes easily.
+//   Note: optional tip
+//   ---
+//   Day: Tuesday
+//   ...
+// Only "Day:" and "Name:" are required per block — Servings/Ingredients/
+// Steps/Note are all optional, so a block that's just a Day+Name (pointing
+// at an existing recipe already in the library) leaves that recipe's row
+// untouched instead of blanking it out.
+function parseMealPlanText(text){
+  const lines = String(text || "").split("\n").map(l => l.replace(/\r$/, ""));
+  const meals = [];
+  let current = null;
+  let section = null; // "ingredients" | "steps" | null
+
+  function pushCurrent(){ if(current && current.day) meals.push(current); }
+
+  lines.forEach(rawLine => {
+    const line = rawLine.trim();
+    if(!line || line === "---") return;
+    const m = (label) => line.toLowerCase().startsWith(label.toLowerCase() + ":");
+    const valueAfter = (label) => line.slice(label.length + 1).trim();
+
+    if(m("Day")){
+      pushCurrent();
+      current = {day: valueAfter("Day"), name: "", servings: "", ingredients: [], steps: [], note: ""};
+      section = null;
+    } else if(!current){
+      // ignore stray lines before the first "Day:"
+    } else if(m("Name")){
+      current.name = valueAfter("Name");
+    } else if(m("Servings")){
+      current.servings = valueAfter("Servings");
+    } else if(m("Ingredients")){
+      section = "ingredients";
+    } else if(m("Steps")){
+      section = "steps";
+    } else if(m("Note")){
+      current.note = valueAfter("Note");
+      section = null;
+    } else if(section === "ingredients" && /^[-•]\s*/.test(line)){
+      current.ingredients.push(line.replace(/^[-•]\s*/, "").trim());
+    } else if(section === "steps" && /^\d+[.)]\s*/.test(line)){
+      current.steps.push(line.replace(/^\d+[.)]\s*/, "").trim());
+    }
+  });
+  pushCurrent();
+
+  return meals;
+}
+
+// Parses a pasted grocery receipt — the format Claude outputs after reading
+// a screenshot. A "Date:"/"Store:" pair applies to every item line that
+// follows, until the next "Date:" line starts a new receipt (so more than
+// one receipt can be pasted in at once). Each item line is single-line and
+// pipe-delimited: Item | Qty | Price | Section | Category.
+//   Date: 2026-08-20
+//   Store: Walmart
+//   Friendly Farms Milk (1 gal) | 1 | 3.55 | fridge | Dairy
+//   Great Value Mayonnaise (30 fl oz) | 1 | 2.97 | pantry | Condiments & Sauces
+//   Date: 2026-08-08
+//   Store: ALDI
+//   General Mills Cinnamon Toast Crunch | 1 | 4.39 | pantry | Cereal & Breakfast
+function parsePurchasesText(text){
+  const lines = String(text || "").split("\n").map(l => l.replace(/\r$/, ""));
+  const purchases = [];
+  let currentDate = "", currentStore = "";
+
+  lines.forEach(rawLine => {
+    const line = rawLine.trim();
+    if(!line) return;
+    const m = (label) => line.toLowerCase().startsWith(label.toLowerCase() + ":");
+    const valueAfter = (label) => line.slice(label.length + 1).trim();
+
+    if(m("Date")){
+      currentDate = valueAfter("Date");
+    } else if(m("Store")){
+      currentStore = valueAfter("Store");
+    } else if(line.includes("|")){
+      const parts = line.split("|").map(p => p.trim());
+      const [item, qty, price, section, category] = parts;
+      if(item){
+        purchases.push({
+          date: currentDate, store: currentStore,
+          item, qty: qty || "", price: price || "",
+          section: (section || "").toLowerCase(), category: category || ""
+        });
+      }
+    }
+    // any other stray line (blank, unrecognized) is just ignored
+  });
+
+  return purchases;
+}
+
 function setSyncStatus(mode, text){
   const el = document.getElementById("syncStatus");
   const txt = document.getElementById("syncText");
@@ -677,7 +784,9 @@ function render(){
 
   renderAddItemForm(main);
   renderBulkUpdate(main);
+  renderPurchasesImport(main);
   if(!query.trim()) renderMeals(main);
+  if(!query.trim()) renderMealsImport(main);
   renderItems(main);
 }
 
@@ -871,6 +980,131 @@ function renderMeals(container){
 
     block.appendChild(card);
   });
+
+  container.appendChild(block);
+}
+
+function renderMealsImport(container){
+  const block = document.createElement("details");
+  block.className = "bulk-update-block";
+
+  const summary = document.createElement("summary");
+  summary.textContent = "Update This Week's Meals";
+  block.appendChild(summary);
+
+  const hint = document.createElement("div");
+  hint.className = "bulk-hint";
+  hint.textContent = 'Paste the meal plan Claude gave you in chat — each day gets written straight to the sheet, no laptop needed. Format per day: "Day: Monday" then "Name: …", and optionally "Servings:", "Ingredients:" (lines starting with -), "Steps:" (lines starting with a number), and "Note:" — separate days with a line containing just "---". A day with just Day/Name (pointing at a recipe already in the library) leaves that recipe untouched.';
+  block.appendChild(hint);
+
+  const textarea = document.createElement("textarea");
+  textarea.rows = 10;
+  textarea.placeholder = "Day: Monday\nName: Sheet-Pan Salmon with Green Beans & Rice\nServings: 4\nIngredients:\n- 1 lb salmon fillet\n- 1 cup jasmine rice\nSteps:\n1. Preheat oven to 400°F.\n2. Roast salmon 12-15 min until it flakes easily.\nNote:\n---\nDay: Tuesday\n…";
+  block.appendChild(textarea);
+
+  const applyBtn = document.createElement("button");
+  applyBtn.textContent = "Update meal plan";
+  block.appendChild(applyBtn);
+
+  applyBtn.onclick = async () => {
+    const parsed = parseMealPlanText(textarea.value);
+    if(!parsed.length){
+      alert('Couldn\'t find any meals in that text — check it matches the "Day: …" / "Name: …" format and try again.');
+      return;
+    }
+
+    applyBtn.disabled = true;
+    for(let i = 0; i < parsed.length; i++){
+      const p = parsed[i];
+      applyBtn.textContent = "Updating… (" + (i + 1) + "/" + parsed.length + ")";
+      setSyncStatus("saving", "Saving…");
+      try{
+        await apiPost({resource: "meals", action: "upsert", day: p.day, meal: p.name, cooked: false});
+        const hasRecipeInfo = p.servings || p.ingredients.length || p.steps.length || p.note;
+        if(p.name && hasRecipeInfo){
+          const recipeBody = {resource: "recipes", action: "upsert", name: p.name};
+          if(p.servings) recipeBody.servings = p.servings;
+          if(p.ingredients.length) recipeBody.ingredients = p.ingredients.join(" | ");
+          if(p.steps.length) recipeBody.steps = p.steps.join(" | ");
+          if(p.note) recipeBody.note = p.note;
+          await apiPost(recipeBody);
+        }
+      }catch(err){
+        console.error("Meal plan import failed on \"" + p.day + "\":", err);
+        setSyncStatus("error", "Import failed partway — check the sheet");
+        alert("Something went wrong updating " + p.day + ": " + err.message + "\n\nDays before this one in the list were likely already saved — check the sheet before pasting again, to avoid double-writing them.");
+        applyBtn.disabled = false;
+        applyBtn.textContent = "Update meal plan";
+        return;
+      }
+    }
+
+    applyBtn.disabled = false;
+    applyBtn.textContent = "Update meal plan";
+    textarea.value = "";
+    suppressPollUntil = Date.now() + 4000;
+    setSyncStatus("ok", "Synced");
+    await loadAll();
+    alert("Updated " + parsed.length + " day" + (parsed.length === 1 ? "" : "s") + ".");
+  };
+
+  container.appendChild(block);
+}
+
+function renderPurchasesImport(container){
+  const block = document.createElement("details");
+  block.className = "bulk-update-block";
+
+  const summary = document.createElement("summary");
+  summary.textContent = "Log a Grocery Purchase";
+  block.appendChild(summary);
+
+  const hint = document.createElement("div");
+  hint.className = "bulk-hint";
+  hint.textContent = 'Paste the receipt list Claude gives you from a screenshot — each line both logs the purchase and restocks that item here. Format: "Date: 2026-08-20" then "Store: Walmart", followed by one line per item as "Item | Qty | Price | Section | Category". Paste more than one receipt at once by starting a new "Date:" line for each.';
+  block.appendChild(hint);
+
+  const textarea = document.createElement("textarea");
+  textarea.rows = 8;
+  textarea.placeholder = "Date: 2026-08-20\nStore: Walmart\nFriendly Farms Milk (1 gal) | 1 | 3.55 | fridge | Dairy\nGreat Value Mayonnaise (30 fl oz) | 1 | 2.97 | pantry | Condiments & Sauces";
+  block.appendChild(textarea);
+
+  const applyBtn = document.createElement("button");
+  applyBtn.textContent = "Log purchases";
+  block.appendChild(applyBtn);
+
+  applyBtn.onclick = async () => {
+    const parsed = parsePurchasesText(textarea.value);
+    if(!parsed.length){
+      alert('Couldn\'t find any items in that text — check it matches the "Item | Qty | Price | Section | Category" format and try again.');
+      return;
+    }
+
+    applyBtn.disabled = true;
+    for(let i = 0; i < parsed.length; i++){
+      const p = parsed[i];
+      applyBtn.textContent = "Logging… (" + (i + 1) + "/" + parsed.length + ")";
+      setSyncStatus("saving", "Saving…");
+      try{
+        await apiPost({resource: "purchases", action: "log", date: p.date, store: p.store, item: p.item, qty: p.qty, price: p.price, section: p.section, category: p.category});
+      }catch(err){
+        console.error("Purchase log failed on \"" + p.item + "\":", err);
+        setSyncStatus("error", "Log failed partway — check the sheet");
+        alert("Something went wrong logging \"" + p.item + "\": " + err.message + "\n\nItems before this one in the list were likely already saved — check the sheet before pasting again, to avoid double-logging them.");
+        applyBtn.disabled = false;
+        applyBtn.textContent = "Log purchases";
+        return;
+      }
+    }
+
+    applyBtn.disabled = false;
+    applyBtn.textContent = "Log purchases";
+    textarea.value = "";
+    suppressPollUntil = Date.now() + 4000;
+    setSyncStatus("ok", "Synced");
+    await loadAll();
+    alert("Logged " + parsed.length + " item" + (parsed.length === 1 ? "" : "s") + ".");
+  };
 
   container.appendChild(block);
 }
