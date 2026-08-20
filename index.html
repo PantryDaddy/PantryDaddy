@@ -72,7 +72,7 @@
   .chip.active[data-scope="all"]{background:var(--ink);color:#fff;border-color:var(--ink);}
   .chip.active[data-scope="pantry"]{background:var(--pantry);color:#fff;border-color:var(--pantry);}
   .chip.active[data-scope="freezer"]{background:var(--freezer);color:#fff;border-color:var(--freezer);}
-  .chip.active[data-scope="fresh"]{background:var(--tag);color:#fff;border-color:var(--tag);}
+  .chip.active[data-scope="fridge"]{background:var(--tag);color:#fff;border-color:var(--tag);}
   .sync-status{
     font-size:11.5px;
     font-weight:600;
@@ -155,7 +155,7 @@
   }
   .shelf-tag.pantry{background:var(--pantry-soft);color:var(--pantry);}
   .shelf-tag.freezer{background:var(--freezer-soft);color:var(--freezer);}
-  .shelf-tag.fresh{background:var(--tag-soft);color:var(--tag);}
+  .shelf-tag.fridge{background:var(--tag-soft);color:var(--tag);}
   .category-title{
     font-size:14px;
     font-weight:700;
@@ -205,7 +205,25 @@
     font-variant-numeric:tabular-nums;
     font-weight:700;
     font-size:14.5px;
+    cursor:pointer;
+    border-bottom:1px dotted var(--ink-soft);
   }
+  .qty-input{
+    width:48px;
+    text-align:center;
+    font-variant-numeric:tabular-nums;
+    font-weight:700;
+    font-size:14.5px;
+    font-family:inherit;
+    color:var(--ink);
+    background:var(--card);
+    border:1px solid var(--pantry);
+    border-radius:6px;
+    padding:3px 2px;
+  }
+  .qty-input::-webkit-outer-spin-button,
+  .qty-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  .qty-input[type=number]{-moz-appearance:textfield;}
   .remove-btn{
     border:none;
     background:none;
@@ -272,7 +290,7 @@
     <div class="chip active" data-scope="all">All</div>
     <div class="chip" data-scope="pantry">Pantry</div>
     <div class="chip" data-scope="freezer">Freezer</div>
-    <div class="chip" data-scope="fresh">Fresh</div>
+    <div class="chip" data-scope="fridge">Fridge</div>
   </div>
   <div class="sync-status" id="syncStatus"><span class="dot"></span><span id="syncText">Loading…</span></div>
 </header>
@@ -434,7 +452,7 @@ function renderMeals(container){
 }
 
 function renderItems(container){
-  const sections = activeScope === "all" ? ["pantry", "freezer", "fresh"] : [activeScope];
+  const sections = activeScope === "all" ? ["pantry", "freezer", "fridge"] : [activeScope];
   const q = query.trim().toLowerCase();
   let totalShown = 0;
 
@@ -447,7 +465,7 @@ function renderItems(container){
 
     const tag = document.createElement("div");
     tag.className = "shelf-tag " + section;
-    tag.textContent = section === "pantry" ? "Pantry" : section === "freezer" ? "Freezer" : "Fresh / Fridge";
+    tag.textContent = section === "pantry" ? "Pantry" : section === "freezer" ? "Freezer" : "Fridge";
     block.appendChild(tag);
 
     // group categories case/whitespace-insensitively, but display using the first-seen casing
@@ -492,6 +510,33 @@ function renderItems(container){
         const qtyEl = document.createElement("div");
         qtyEl.className = "qty";
         qtyEl.textContent = it.qty;
+        qtyEl.title = "Tap to type an exact quantity";
+        qtyEl.onclick = () => {
+          const input = document.createElement("input");
+          input.type = "number";
+          input.className = "qty-input";
+          input.min = "0";
+          input.step = "any";
+          input.value = it.qty;
+          qtyEl.replaceWith(input);
+          input.focus();
+          input.select();
+
+          let committed = false;
+          const commit = () => {
+            if(committed) return;
+            committed = true;
+            const val = parseFloat(input.value);
+            it.qty = isNaN(val) ? it.qty : Math.max(0, Math.round(val * 100) / 100);
+            saveItemQty(it);
+            render();
+          };
+          input.addEventListener("blur", commit);
+          input.addEventListener("keydown", (e) => {
+            if(e.key === "Enter") input.blur();
+            if(e.key === "Escape"){ committed = true; render(); }
+          });
+        };
         const plus = document.createElement("button");
         plus.textContent = "+";
         plus.onclick = () => { it.qty = Math.round((it.qty + 1) * 100) / 100; saveItemQty(it); render(); };
@@ -549,10 +594,10 @@ function renderAddItemForm(container){
   row.className = "add-item-row";
 
   const sectionSelect = document.createElement("select");
-  ["pantry", "freezer", "fresh"].forEach(s => {
+  ["pantry", "freezer", "fridge"].forEach(s => {
     const opt = document.createElement("option");
     opt.value = s;
-    opt.textContent = s === "pantry" ? "Pantry" : s === "freezer" ? "Freezer" : "Fresh / Fridge";
+    opt.textContent = s === "pantry" ? "Pantry" : s === "freezer" ? "Freezer" : "Fridge";
     sectionSelect.appendChild(opt);
   });
   row.appendChild(sectionSelect);
