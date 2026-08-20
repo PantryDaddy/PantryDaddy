@@ -244,13 +244,14 @@
     border:1px solid var(--line);
     border-radius:12px;
     padding:14px;
-    margin-top:24px;
+    margin-bottom:14px;
   }
   .add-item-title{
     font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;
     font-size:16px;
     font-weight:600;
     margin:0 0 10px;
+    cursor:pointer;
   }
   .add-item-form{
     display:flex;
@@ -279,6 +280,51 @@
     font-weight:700;
     cursor:pointer;
   }
+  .bulk-update-block{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px;
+    margin-top:14px;
+    margin-bottom:24px;
+  }
+  .bulk-update-block summary{
+    font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .bulk-hint{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin:10px 0;
+    line-height:1.4;
+  }
+  .bulk-update-block textarea{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:9px 10px;
+    font-size:13.5px;
+    color:var(--ink);
+    background:var(--paper);
+    font-family:inherit;
+    resize:vertical;
+    box-sizing:border-box;
+  }
+  .bulk-update-block button{
+    margin-top:8px;
+    padding:10px;
+    width:100%;
+    border-radius:8px;
+    border:1px solid var(--pantry);
+    background:var(--pantry);
+    color:#fff;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .bulk-update-block button:disabled{opacity:0.6;cursor:default;}
 </style>
 </head>
 <body>
@@ -397,9 +443,10 @@ function render(){
   const main = document.getElementById("main");
   main.innerHTML = "";
 
+  renderAddItemForm(main);
+  renderBulkUpdate(main);
   if(!query.trim()) renderMeals(main);
   renderItems(main);
-  renderAddItemForm(main);
 }
 
 function renderMeals(container){
@@ -574,10 +621,10 @@ function renderItems(container){
 }
 
 function renderAddItemForm(container){
-  const block = document.createElement("div");
+  const block = document.createElement("details");
   block.className = "add-item-block";
 
-  const title = document.createElement("div");
+  const title = document.createElement("summary");
   title.className = "add-item-title";
   title.textContent = "Add an Item";
   block.appendChild(title);
@@ -649,6 +696,76 @@ function renderAddItemForm(container){
   form.appendChild(addBtn);
 
   block.appendChild(form);
+  container.appendChild(block);
+}
+
+function renderBulkUpdate(container){
+  const block = document.createElement("details");
+  block.className = "bulk-update-block";
+
+  const summary = document.createElement("summary");
+  summary.textContent = "Bulk update from a list";
+  block.appendChild(summary);
+
+  const hint = document.createElement("div");
+  hint.className = "bulk-hint";
+  hint.textContent = 'One item per line, as "Item Name: quantity" — paste in whatever you got from a grocery order and it\'ll match existing items by name (case doesn\'t matter). Names it doesn\'t recognize get added as new Pantry/Uncategorized items you can re-file afterward.';
+  block.appendChild(hint);
+
+  const textarea = document.createElement("textarea");
+  textarea.rows = 6;
+  textarea.placeholder = "Great Value Diced Tomatoes: 3\nFriendly Farms Milk (1 gal): 1";
+  block.appendChild(textarea);
+
+  const applyBtn = document.createElement("button");
+  applyBtn.textContent = "Apply updates";
+  block.appendChild(applyBtn);
+
+  applyBtn.onclick = async () => {
+    const lines = textarea.value.split("\n").map(l => l.trim()).filter(Boolean);
+    if(!lines.length) return;
+
+    applyBtn.disabled = true;
+    let updated = 0, added = 0;
+    const skipped = [];
+
+    for(let i = 0; i < lines.length; i++){
+      applyBtn.textContent = "Applying… (" + (i + 1) + "/" + lines.length + ")";
+      const line = lines[i];
+      const idx = line.indexOf(":");
+      if(idx === -1){ skipped.push(line + " — no ':' found"); continue; }
+
+      const name = line.slice(0, idx).trim();
+      const qty = parseFloat(line.slice(idx + 1).trim());
+      if(!name || isNaN(qty)){ skipped.push(line + " — couldn't read a name/quantity"); continue; }
+
+      const matches = items.filter(it => it.item.toLowerCase() === name.toLowerCase());
+      if(matches.length > 1){ skipped.push(name + " — matches more than one item, update by hand"); continue; }
+
+      const cleanQty = Math.max(0, Math.round(qty * 100) / 100);
+      if(matches.length === 1){
+        matches[0].qty = cleanQty;
+        await saveItemQty(matches[0]);
+        updated++;
+      } else {
+        const newItem = {section: "pantry", category: "Uncategorized", item: name, qty: cleanQty};
+        items.push(newItem);
+        await saveItemQty(newItem);
+        added++;
+      }
+    }
+
+    applyBtn.disabled = false;
+    applyBtn.textContent = "Apply updates";
+    textarea.value = "";
+
+    let msg = updated + " updated, " + added + " added as new";
+    if(skipped.length) msg += ", " + skipped.length + " skipped:\n" + skipped.join("\n");
+    else msg += ".";
+    alert(msg);
+    render();
+  };
+
   container.appendChild(block);
 }
 
