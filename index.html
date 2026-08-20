@@ -491,8 +491,13 @@ let suppressPollUntil = 0; // skip the next poll right after a local save, to av
 let expandedMealDays = new Set(); // which meal recipe panels are open — persists across re-renders
 let editingNoteDay = null; // which meal's note editor is open, if any (only one at a time)
 
+// Splits a recipe's Ingredients/Steps cell into a list. Accepts either a
+// real newline between items (how early recipes were entered, e.g. via CSV
+// import) or a " | " delimiter on a single line (the preferred format now —
+// far easier to type into a single Sheets cell, by hand or via automation,
+// since it needs no special line-break keystroke).
 function linesToArray(text){
-  return String(text || "").split("\n").map(l => l.trim()).filter(Boolean);
+  return String(text || "").split(/\n|\s*\|\s*/).map(l => l.trim()).filter(Boolean);
 }
 
 function setSyncStatus(mode, text){
@@ -627,7 +632,10 @@ async function saveFavorite(m){
   const recipe = findRecipe(mealName);
   const newValue = !(recipe && recipe.favorite);
   try{
-    await apiPost({resource:"recipes", action:"upsert", name: mealName, favorite: newValue});
+    // Write "" rather than false when un-favoriting, so the cell goes back to
+    // blank instead of showing the literal text FALSE — matching how Note and
+    // Last Cooked already behave when they're unset.
+    await apiPost({resource:"recipes", action:"upsert", name: mealName, favorite: newValue ? true : ""});
     if(recipe){
       recipe.favorite = newValue;
     } else {
