@@ -19,6 +19,10 @@
     --tag-soft:#F7E4D7;
     --household:#6B5B7A;
     --household-soft:#EFE9F2;
+    --opened:#8A6D1D;
+    --opened-soft:#F3ECD9;
+    --danger:#B33F3F;
+    --danger-soft:#F6D9D9;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -333,7 +337,7 @@
   ul.items{list-style:none;margin:0;padding:0;}
   li.item{
     display:flex;
-    align-items:center;
+    align-items:flex-start;
     justify-content:space-between;
     gap:10px;
     background:var(--card);
@@ -343,7 +347,81 @@
     margin-bottom:7px;
   }
   li.item.zero{opacity:0.45;}
+  .item-main{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+    min-width:0;
+    flex:1;
+    padding-top:2px;
+  }
   .item-name{font-size:14.5px;line-height:1.3;}
+  .item-tags{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:6px;
+  }
+  .tag-pill{
+    display:inline-flex;
+    align-items:center;
+    font-size:11px;
+    font-weight:700;
+    padding:3px 8px;
+    border-radius:999px;
+    border:none;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .tag-pill.purchased{background:var(--tag-soft);color:var(--tag);}
+  .tag-pill.opened{background:var(--opened-soft);color:var(--opened);}
+  .tag-pill.exp-ok{background:var(--pantry-soft);color:var(--pantry);}
+  .tag-pill.exp-soon{background:#FCEBD5;color:#B5542A;}
+  .tag-pill.exp-over{background:var(--danger-soft);color:var(--danger);}
+  .tag-pill-link{
+    display:inline-flex;
+    align-items:center;
+    font-size:11px;
+    font-weight:600;
+    color:var(--ink-soft);
+    background:none;
+    border:none;
+    text-decoration:underline;
+    text-underline-offset:2px;
+    cursor:pointer;
+    padding:3px 0;
+    font-family:inherit;
+  }
+  .date-editor{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  .date-editor input[type=date]{
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:4px 6px;
+    font-size:12.5px;
+    font-family:inherit;
+    color:var(--ink);
+    background:var(--paper);
+  }
+  .date-editor-btn{
+    border:1px solid var(--pantry);
+    background:var(--pantry);
+    color:#fff;
+    font-size:11.5px;
+    font-weight:700;
+    padding:5px 9px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  .date-editor-btn.secondary{
+    background:var(--card);
+    color:var(--ink-soft);
+    border-color:var(--line);
+  }
   .item-controls{
     display:flex;
     align-items:center;
@@ -604,7 +682,7 @@ async function apiPost(body){
 }
 
 // ==== State ====
-let items = [];   // [{section, category, item, qty}]
+let items = [];   // [{section, category, item, qty, purchased, opened, expiration}] -- purchased/opened/expiration are "" or a YYYY-MM-DD date
 let meals = [];   // [{day, meal, cooked}]  -- this week's plan only, "meal" is just a name
 let recipes = [];  // [{name, servings, ingredients: [...], steps: [...], note, lastCooked, favorite}]  -- permanent library
 let activeScope = "all";
@@ -617,6 +695,18 @@ let addItemsExpanded = false; // whether the "Add Items" section is open — per
 let mealsImportExpanded = false; // whether "Update This Week's Meals" is open — persists across re-renders
 let purchasesImportExpanded = false; // whether "Log a Grocery Purchase" is open — persists across re-renders
 let actionsMenuOpen = false; // whether the "Actions" dropdown menu is open — persists across re-renders
+let editingDateField = null; // {key, field} identifying the one item+field date editor open right now, if any — only one at a time, same pattern as editingNoteDay
+
+// Which sections get which freshness badge. Purchased ("Bought Xd ago") is
+// fridge-only and normally auto-set by logging a grocery purchase; Opened is
+// fridge+pantry and auto-stamped when a quantity crosses from a whole number
+// into a fraction; Expiration is every section and always manual. Keeping
+// this as one small lookup (rather than scattering "if section === ..."
+// checks everywhere) is deliberate — the old app's version of this feature
+// spread its section rules across several places and that's part of what
+// made it hard to follow.
+const PURCHASED_SECTIONS = new Set(["fridge"]);
+const OPENED_SECTIONS = new Set(["fridge", "pantry"]);
 
 // The app's four browsing sections and their display labels — used for the
 // filter chips, the shelf tags above each group of items, and the Section
@@ -754,7 +844,15 @@ async function loadAll(isBackgroundPoll){
   try{
     const [freshItems, freshMeals, freshRecipes] = await Promise.all([apiGet("items"), apiGet("meals"), apiGet("recipes")]);
     // section is matched case/whitespace-insensitively so it doesn't matter how it was typed in the sheet
-    items = freshItems.map(it => ({section: String(it.section || "").trim().toLowerCase(), category: String(it.category || "").trim(), item: String(it.item || "").trim(), qty: Number(it.qty) || 0}));
+    items = freshItems.map(it => ({
+      section: String(it.section || "").trim().toLowerCase(),
+      category: String(it.category || "").trim(),
+      item: String(it.item || "").trim(),
+      qty: Number(it.qty) || 0,
+      purchased: String(it.purchased || "").trim(),
+      opened: String(it.opened || "").trim(),
+      expiration: String(it.expiration || "").trim()
+    }));
     meals = freshMeals.map(m => ({
       day: m.day,
       meal: m.meal,
@@ -778,15 +876,153 @@ async function loadAll(isBackgroundPoll){
 }
 
 // ==== Saving ====
-async function saveItemQty(it){
+// extraFields lets a caller also write purchased/opened/expiration in the
+// same request as a qty change (or on their own, e.g. from a date editor) —
+// anything not included here is left untouched on the backend.
+async function saveItemQty(it, extraFields){
   setSyncStatus("saving", "Saving…");
   try{
-    await apiPost({resource:"items", action:"upsert", section: it.section, category: it.category, item: it.item, qty: it.qty});
+    await apiPost(Object.assign({resource:"items", action:"upsert", section: it.section, category: it.category, item: it.item, qty: it.qty}, extraFields || {}));
     suppressPollUntil = Date.now() + 4000;
     setSyncStatus("ok", "Synced");
   }catch(err){
     setSyncStatus("error", "Save failed — try again");
   }
+}
+
+// ==== Freshness badges (Bought / Opened / Expiration) ====
+function itemKey(it){
+  return it.section + "|" + it.category + "|" + it.item;
+}
+
+function daysAgo(iso){
+  if(!iso) return null;
+  const d = new Date(iso + "T00:00:00");
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  return Math.round((today - d) / 86400000);
+}
+
+// Whole -> fraction (e.g. 1 -> 0.75) reads as "just opened"; back to a whole
+// number (used up to 0, or restocked to a round number) clears that stamp.
+// Only called for Fridge/Pantry items (see OPENED_SECTIONS) and only from
+// the main item-list quantity controls — not from Add Items or the purchase
+// log, where a quantity change means "new stock," not "using what's there."
+function maybeStampOpened(it, prevQty, newQty){
+  if(!OPENED_SECTIONS.has(it.section)) return {};
+  const wasWhole = Number.isInteger(prevQty);
+  const isWhole = Number.isInteger(newQty);
+  if(wasWhole && !isWhole && newQty > 0 && !it.opened){
+    it.opened = new Date().toISOString().slice(0, 10);
+    return {opened: it.opened};
+  }
+  if(!wasWhole && isWhole && it.opened){
+    it.opened = "";
+    return {opened: ""};
+  }
+  return {};
+}
+
+function expInfo(iso){
+  const d = new Date(iso + "T00:00:00");
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const diff = Math.round((d - today) / 86400000);
+  if(diff > 3) return {text: "Exp " + iso, cls: "exp-ok"};
+  if(diff > 1) return {text: "Exp in " + diff + "d", cls: "exp-soon"};
+  if(diff === 1) return {text: "Exp tomorrow", cls: "exp-soon"};
+  if(diff === 0) return {text: "Exp today", cls: "exp-soon"};
+  return {text: "Expired " + (-diff) + "d ago", cls: "exp-over"};
+}
+
+// Inline date-picker editor shared by all three fields (Bought/Opened/
+// Expiration) — Save writes it, Clear blanks it, Cancel just closes it.
+function buildDateEditor(it, field){
+  const wrap = document.createElement("div");
+  wrap.className = "date-editor";
+
+  const input = document.createElement("input");
+  input.type = "date";
+  input.value = it[field] || "";
+  wrap.appendChild(input);
+
+  const saveBtn = document.createElement("button");
+  saveBtn.type = "button";
+  saveBtn.className = "date-editor-btn";
+  saveBtn.textContent = "Save";
+  saveBtn.onclick = () => {
+    it[field] = input.value;
+    editingDateField = null;
+    saveItemQty(it, {[field]: it[field]});
+    render();
+  };
+  wrap.appendChild(saveBtn);
+
+  if(it[field]){
+    const clearBtn = document.createElement("button");
+    clearBtn.type = "button";
+    clearBtn.className = "date-editor-btn secondary";
+    clearBtn.textContent = "Clear";
+    clearBtn.onclick = () => {
+      it[field] = "";
+      editingDateField = null;
+      saveItemQty(it, {[field]: ""});
+      render();
+    };
+    wrap.appendChild(clearBtn);
+  }
+
+  const cancelBtn = document.createElement("button");
+  cancelBtn.type = "button";
+  cancelBtn.className = "date-editor-btn secondary";
+  cancelBtn.textContent = "Cancel";
+  cancelBtn.onclick = () => { editingDateField = null; render(); };
+  wrap.appendChild(cancelBtn);
+
+  return wrap;
+}
+
+// Bought / Opened badge — both are the same shape (a colored pill once set,
+// a plain "+ set" link until then), just different fields/labels/colors.
+function renderDateBadge(it, field, label, pillClass){
+  const key = itemKey(it);
+  if(editingDateField && editingDateField.key === key && editingDateField.field === field){
+    return buildDateEditor(it, field);
+  }
+
+  const value = it[field];
+  const btn = document.createElement("button");
+  btn.type = "button";
+  if(value){
+    const days = daysAgo(value);
+    btn.className = "tag-pill " + pillClass;
+    btn.textContent = label + " " + (days === 0 ? "today" : days + "d ago");
+  } else {
+    btn.className = "tag-pill-link";
+    btn.textContent = "+ set " + label.toLowerCase() + " date";
+  }
+  btn.onclick = () => { editingDateField = {key, field}; render(); };
+  return btn;
+}
+
+// Expiration badge — same tap-to-edit shape as above, but color-coded by how
+// close the date is instead of just showing "Xd ago".
+function renderExpirationBadge(it){
+  const key = itemKey(it);
+  if(editingDateField && editingDateField.key === key && editingDateField.field === "expiration"){
+    return buildDateEditor(it, "expiration");
+  }
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  if(it.expiration){
+    const info = expInfo(it.expiration);
+    btn.className = "tag-pill " + info.cls;
+    btn.textContent = info.text;
+  } else {
+    btn.className = "tag-pill-link";
+    btn.textContent = "+ set expiration";
+  }
+  btn.onclick = () => { editingDateField = {key, field: "expiration"}; render(); };
+  return btn;
 }
 
 async function deleteItem(it){
@@ -1347,10 +1583,22 @@ function renderItems(container){
         const li = document.createElement("li");
         li.className = "item" + (it.qty === 0 ? " zero" : "");
 
+        const main = document.createElement("div");
+        main.className = "item-main";
+
         const name = document.createElement("div");
         name.className = "item-name";
         name.textContent = it.item;
-        li.appendChild(name);
+        main.appendChild(name);
+
+        const tags = document.createElement("div");
+        tags.className = "item-tags";
+        if(PURCHASED_SECTIONS.has(it.section)) tags.appendChild(renderDateBadge(it, "purchased", "Bought", "purchased"));
+        if(OPENED_SECTIONS.has(it.section)) tags.appendChild(renderDateBadge(it, "opened", "Opened", "opened"));
+        tags.appendChild(renderExpirationBadge(it));
+        main.appendChild(tags);
+
+        li.appendChild(main);
 
         const controls = document.createElement("div");
         controls.className = "item-controls";
@@ -1359,7 +1607,12 @@ function renderItems(container){
         stepper.className = "stepper";
         const minus = document.createElement("button");
         minus.textContent = "–";
-        minus.onclick = () => { it.qty = Math.max(0, Math.round((it.qty - 1) * 100) / 100); saveItemQty(it); render(); };
+        minus.onclick = () => {
+          const prevQty = it.qty;
+          it.qty = Math.max(0, Math.round((it.qty - 1) * 100) / 100);
+          saveItemQty(it, maybeStampOpened(it, prevQty, it.qty));
+          render();
+        };
         const qtyEl = document.createElement("div");
         qtyEl.className = "qty";
         qtyEl.textContent = it.qty;
@@ -1379,9 +1632,10 @@ function renderItems(container){
           const commit = () => {
             if(committed) return;
             committed = true;
+            const prevQty = it.qty;
             const val = parseFloat(input.value);
             it.qty = isNaN(val) ? it.qty : Math.max(0, Math.round(val * 100) / 100);
-            saveItemQty(it);
+            saveItemQty(it, maybeStampOpened(it, prevQty, it.qty));
             render();
           };
           input.addEventListener("blur", commit);
@@ -1392,7 +1646,12 @@ function renderItems(container){
         };
         const plus = document.createElement("button");
         plus.textContent = "+";
-        plus.onclick = () => { it.qty = Math.round((it.qty + 1) * 100) / 100; saveItemQty(it); render(); };
+        plus.onclick = () => {
+          const prevQty = it.qty;
+          it.qty = Math.round((it.qty + 1) * 100) / 100;
+          saveItemQty(it, maybeStampOpened(it, prevQty, it.qty));
+          render();
+        };
         stepper.appendChild(minus);
         stepper.appendChild(qtyEl);
         stepper.appendChild(plus);
