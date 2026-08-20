@@ -102,6 +102,7 @@
     font-size:16px;
     font-weight:600;
     margin:0 0 10px;
+    cursor:pointer;
   }
   .meal-card{
     padding:10px 0;
@@ -366,7 +367,7 @@
     flex-direction:column;
     gap:8px;
   }
-  .add-item-form input, .add-item-form select{
+  .add-item-form input, .add-item-form select, .add-item-form textarea{
     border:1px solid var(--line);
     border-radius:8px;
     padding:9px 10px;
@@ -375,9 +376,38 @@
     background:var(--paper);
     font-family:inherit;
   }
+  .add-item-form textarea{
+    width:100%;
+    font-size:13.5px;
+    resize:vertical;
+    box-sizing:border-box;
+  }
   .add-item-row{display:flex;gap:8px;min-width:0;}
   .add-item-row > *{flex:1;min-width:0;}
   .add-item-row .qty-field{flex:0 1 56px;min-width:40px;}
+  .add-item-field{display:flex;flex-direction:column;gap:4px;}
+  .field-label{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .category-input-wrap{position:relative;}
+  .category-input-wrap input{
+    width:100%;
+    padding-right:26px;
+    box-sizing:border-box;
+    /* Always-visible caret, drawn directly on the field so it looks and
+       behaves like the Section dropdown's arrow instead of a separate
+       button that only rendered on hover. */
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M0 0L5 6L10 0Z' fill='%236E6A5E'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right 10px center;
+    background-size:10px 6px;
+    appearance:none;
+    -webkit-appearance:none;
+  }
   .add-item-form button{
     margin-top:4px;
     padding:10px;
@@ -409,6 +439,39 @@
     margin:10px 0;
     line-height:1.4;
   }
+  ul.bulk-hint{
+    padding-left:18px;
+  }
+  ul.bulk-hint li{
+    margin-bottom:3px;
+  }
+  .example-box{
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:var(--paper);
+    padding:9px 10px;
+  }
+  .example-box-title{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .add-item-form .example-box textarea{
+    display:block;
+    width:100%;
+    border:none;
+    background:none;
+    padding:0;
+    font-size:13.5px;
+    color:var(--ink);
+    font-family:inherit;
+    resize:vertical;
+    box-sizing:border-box;
+  }
+  .add-item-form .example-box textarea:focus{outline:none;}
   .bulk-update-block textarea{
     width:100%;
     border:1px solid var(--line);
@@ -490,6 +553,8 @@ let query = "";
 let suppressPollUntil = 0; // skip the next poll right after a local save, to avoid a race overwriting an in-flight edit
 let expandedMealDays = new Set(); // which meal recipe panels are open — persists across re-renders
 let editingNoteDay = null; // which meal's note editor is open, if any (only one at a time)
+let mealsExpanded = true; // whether the whole "This Week's Meals" section is open — persists across re-renders
+let addItemsExpanded = false; // whether the "Add Items" section is open — persists across re-renders
 
 // Splits a recipe's Ingredients/Steps cell into a list. Accepts either a
 // real newline between items (how early recipes were entered, e.g. via CSV
@@ -783,7 +848,6 @@ function render(){
   main.innerHTML = "";
 
   renderAddItemForm(main);
-  renderBulkUpdate(main);
   renderPurchasesImport(main);
   if(!query.trim()) renderMeals(main);
   if(!query.trim()) renderMealsImport(main);
@@ -792,10 +856,12 @@ function render(){
 
 function renderMeals(container){
   if(meals.length === 0) return;
-  const block = document.createElement("div");
+  const block = document.createElement("details");
   block.className = "meals-block";
+  block.open = mealsExpanded;
+  block.addEventListener("toggle", () => { mealsExpanded = block.open; });
 
-  const title = document.createElement("div");
+  const title = document.createElement("summary");
   title.className = "meals-title";
   title.textContent = "This Week's Meals";
   block.appendChild(title);
@@ -1231,48 +1297,70 @@ function renderItems(container){
   }
 }
 
+// Add an Item, and Bulk Update from a list, used to be two separate
+// features — one gave you real section/category controls but only one item
+// at a time, the other let you paste many lines at once but had no way to
+// place a new item anywhere but Pantry/Uncategorized. This merges them:
+// the Section/Category fields set the DEFAULT for every line below, and any
+// line can override that default for itself with "| section | category".
 function renderAddItemForm(container){
   const block = document.createElement("details");
   block.className = "add-item-block";
+  block.open = addItemsExpanded;
+  block.addEventListener("toggle", () => { addItemsExpanded = block.open; });
 
   const title = document.createElement("summary");
   title.className = "add-item-title";
-  title.textContent = "Add an Item";
+  title.textContent = "Add Items";
   block.appendChild(title);
 
   const form = document.createElement("div");
   form.className = "add-item-form";
 
-  const nameInput = document.createElement("input");
-  nameInput.type = "text";
-  nameInput.placeholder = "Item name";
-  form.appendChild(nameInput);
-
   const row = document.createElement("div");
   row.className = "add-item-row";
 
+  const sectionField = document.createElement("div");
+  sectionField.className = "add-item-field";
+  const sectionLabel = document.createElement("label");
+  sectionLabel.className = "field-label";
+  sectionLabel.textContent = "Section";
+  sectionField.appendChild(sectionLabel);
   const sectionSelect = document.createElement("select");
+  sectionSelect.title = "Default section for lines below that don't specify their own";
   ["pantry", "freezer", "fridge"].forEach(s => {
     const opt = document.createElement("option");
     opt.value = s;
     opt.textContent = s === "pantry" ? "Pantry" : s === "freezer" ? "Freezer" : "Fridge";
     sectionSelect.appendChild(opt);
   });
-  row.appendChild(sectionSelect);
+  sectionField.appendChild(sectionSelect);
+  row.appendChild(sectionField);
 
+  const categoryField = document.createElement("div");
+  categoryField.className = "add-item-field";
+  const categoryLabel = document.createElement("label");
+  categoryLabel.className = "field-label";
+  categoryLabel.textContent = "Category";
+  categoryField.appendChild(categoryLabel);
+  const categoryWrap = document.createElement("div");
+  categoryWrap.className = "category-input-wrap";
   const categoryInput = document.createElement("input");
   categoryInput.type = "text";
-  categoryInput.placeholder = "Category";
+  categoryInput.placeholder = "Default category";
   categoryInput.setAttribute("list", "categoryOptions");
-  row.appendChild(categoryInput);
-
-  const qtyInput = document.createElement("input");
-  qtyInput.type = "number";
-  qtyInput.min = "0";
-  qtyInput.step = "1";
-  qtyInput.value = "1";
-  qtyInput.classList.add("qty-field");
-  row.appendChild(qtyInput);
+  // Clicking anywhere in the field opens the full category list, the same
+  // way clicking the Section dropdown opens its list — showPicker() shows
+  // every option regardless of what's already typed; where it's
+  // unsupported, focusing the field still surfaces matching suggestions.
+  categoryInput.addEventListener("click", () => {
+    if(typeof categoryInput.showPicker === "function"){
+      try{ categoryInput.showPicker(); }catch(e){ /* unsupported here — it's already focused */ }
+    }
+  });
+  categoryWrap.appendChild(categoryInput);
+  categoryField.appendChild(categoryWrap);
+  row.appendChild(categoryField);
 
   form.appendChild(row);
 
@@ -1290,68 +1378,70 @@ function renderAddItemForm(container){
   });
   form.appendChild(datalist);
 
-  const addBtn = document.createElement("button");
-  addBtn.textContent = "Add to pantry";
-  addBtn.onclick = async () => {
-    const name = nameInput.value.trim();
-    const category = categoryInput.value.trim();
-    if(!name || !category){
-      alert("Please enter both an item name and a category.");
-      return;
-    }
-    const newItem = {section: sectionSelect.value, category, item: name, qty: parseFloat(qtyInput.value) || 0};
-    items.push(newItem);
-    render();
-    await saveItemQty(newItem);
-  };
-  form.appendChild(addBtn);
-
-  block.appendChild(form);
-  container.appendChild(block);
-}
-
-function renderBulkUpdate(container){
-  const block = document.createElement("details");
-  block.className = "bulk-update-block";
-
-  const summary = document.createElement("summary");
-  summary.textContent = "Bulk update from a list";
-  block.appendChild(summary);
-
-  const hint = document.createElement("div");
+  const hint = document.createElement("ul");
   hint.className = "bulk-hint";
-  hint.textContent = 'One item per line, as "Item Name: quantity" — paste in whatever you got from a grocery order and it\'ll match existing items by name (case doesn\'t matter). Names it doesn\'t recognize get added as new Pantry/Uncategorized items you can re-file afterward.';
-  block.appendChild(hint);
+  const hintPoint1 = document.createElement("li");
+  hintPoint1.textContent = 'Adding one item will use the "Section" and "Category" fields above.';
+  hint.appendChild(hintPoint1);
+  const hintPoint2 = document.createElement("li");
+  hintPoint2.textContent = "Adding multiple items requires using one of the formats listed below.";
+  hint.appendChild(hintPoint2);
+  form.appendChild(hint);
+
+  // A real title element (not just the first placeholder line) so it can
+  // look distinct — bold, small-caps — instead of blending into the
+  // examples below it in the placeholder's plain, uniform gray text.
+  const exampleBox = document.createElement("div");
+  exampleBox.className = "example-box";
+
+  const exampleTitle = document.createElement("div");
+  exampleTitle.className = "example-box-title";
+  exampleTitle.textContent = "Example Formats:";
+  exampleBox.appendChild(exampleTitle);
 
   const textarea = document.createElement("textarea");
-  textarea.rows = 6;
-  textarea.placeholder = "Great Value Diced Tomatoes: 3\nFriendly Farms Milk (1 gal): 1";
-  block.appendChild(textarea);
+  textarea.rows = 4;
+  textarea.placeholder = "Great Value Diced Tomatoes: 3\nFriendly Farms Milk (1 gal)\nNew Frozen Item: 2 | freezer | Meat & Poultry";
+  exampleBox.appendChild(textarea);
 
-  const applyBtn = document.createElement("button");
-  applyBtn.textContent = "Apply updates";
-  block.appendChild(applyBtn);
+  form.appendChild(exampleBox);
 
-  applyBtn.onclick = async () => {
+  const addBtn = document.createElement("button");
+  addBtn.textContent = "Add items";
+  addBtn.onclick = async () => {
     const lines = textarea.value.split("\n").map(l => l.trim()).filter(Boolean);
     if(!lines.length) return;
 
-    applyBtn.disabled = true;
-    let updated = 0, added = 0;
+    const defaultSection = sectionSelect.value;
+    const defaultCategory = categoryInput.value.trim();
+
+    addBtn.disabled = true;
+    let added = 0, updated = 0;
     const skipped = [];
 
     for(let i = 0; i < lines.length; i++){
-      applyBtn.textContent = "Applying… (" + (i + 1) + "/" + lines.length + ")";
+      addBtn.textContent = "Adding… (" + (i + 1) + "/" + lines.length + ")";
       const line = lines[i];
       const idx = line.indexOf(":");
-      if(idx === -1){ skipped.push(line + " — no ':' found"); continue; }
+      const name = (idx === -1 ? line : line.slice(0, idx)).trim();
+      if(!name){ skipped.push(line + " — couldn't read an item name"); continue; }
 
-      const name = line.slice(0, idx).trim();
-      const qty = parseFloat(line.slice(idx + 1).trim());
-      if(!name || isNaN(qty)){ skipped.push(line + " — couldn't read a name/quantity"); continue; }
+      // Everything after the ":" is quantity (optional, defaults to 1),
+      // optionally followed by "| section | category" to override the
+      // defaults above for just this line.
+      const restParts = (idx === -1 ? "" : line.slice(idx + 1)).trim().split("|").map(p => p.trim());
+      const qty = restParts[0] ? parseFloat(restParts[0]) : 1;
+      if(isNaN(qty)){ skipped.push(line + " — couldn't read a quantity"); continue; }
+      const section = (restParts[1] || defaultSection).toLowerCase();
+      const category = restParts[2] || defaultCategory || "Uncategorized";
 
-      const matches = items.filter(it => it.item.toLowerCase() === name.toLowerCase());
-      if(matches.length > 1){ skipped.push(name + " — matches more than one item, update by hand"); continue; }
+      let matches = items.filter(it => it.item.toLowerCase() === name.toLowerCase());
+      if(matches.length > 1){
+        // an explicit or default section/category can disambiguate two same-named items
+        const narrowed = matches.filter(it => it.section === section && it.category.toLowerCase() === category.toLowerCase());
+        if(narrowed.length === 1) matches = narrowed;
+      }
+      if(matches.length > 1){ skipped.push(name + " — matches more than one item; add \"| section | category\" to specify which, or update by hand"); continue; }
 
       const cleanQty = Math.max(0, Math.round(qty * 100) / 100);
       if(matches.length === 1){
@@ -1359,24 +1449,26 @@ function renderBulkUpdate(container){
         await saveItemQty(matches[0]);
         updated++;
       } else {
-        const newItem = {section: "pantry", category: "Uncategorized", item: name, qty: cleanQty};
+        const newItem = {section, category, item: name, qty: cleanQty};
         items.push(newItem);
         await saveItemQty(newItem);
         added++;
       }
     }
 
-    applyBtn.disabled = false;
-    applyBtn.textContent = "Apply updates";
+    addBtn.disabled = false;
+    addBtn.textContent = "Add items";
     textarea.value = "";
 
-    let msg = updated + " updated, " + added + " added as new";
+    let msg = added + " added, " + updated + " updated";
     if(skipped.length) msg += ", " + skipped.length + " skipped:\n" + skipped.join("\n");
     else msg += ".";
     alert(msg);
     render();
   };
+  form.appendChild(addBtn);
 
+  block.appendChild(form);
   container.appendChild(block);
 }
 
