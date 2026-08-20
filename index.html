@@ -104,23 +104,22 @@
     margin:0 0 10px;
   }
   .meal-card{
-    padding:8px 0;
+    padding:10px 0;
     border-top:1px solid var(--line);
   }
   .meal-card:first-of-type{border-top:none;}
-  .meal-row{
-    display:flex;
-    align-items:center;
-    gap:10px;
-  }
   .meal-day{
     font-size:11px;
     font-weight:700;
     letter-spacing:0.05em;
     text-transform:uppercase;
     color:var(--ink-soft);
-    width:70px;
-    flex-shrink:0;
+    margin-bottom:2px;
+  }
+  .meal-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
   }
   .meal-name-input{
     flex:1;
@@ -128,8 +127,10 @@
     border:1px solid transparent;
     background:transparent;
     font-size:14.5px;
+    font-weight:600;
     color:var(--ink);
     padding:6px 8px;
+    margin-left:-8px;
     border-radius:7px;
   }
   .meal-name-input:focus{border-color:var(--line);background:var(--paper);outline:none;}
@@ -145,18 +146,20 @@
     cursor:pointer;
   }
   .meal-cooked-label input{accent-color:var(--pantry);width:16px;height:16px;}
-  .recipe-toggle{
-    margin:6px 0 0 70px;
+  .recipe-toggle-row{margin-top:4px;}
+  .recipe-link{
     border:none;
     background:none;
-    color:var(--freezer);
-    font-size:12px;
-    font-weight:600;
+    color:var(--pantry);
+    font-size:12.5px;
+    font-weight:700;
     cursor:pointer;
     padding:2px 0;
+    text-decoration:underline;
+    text-underline-offset:2px;
   }
   .meal-recipe{
-    margin:8px 0 0 70px;
+    margin:8px 0 0;
     padding:10px 12px;
     background:var(--paper);
     border:1px solid var(--line);
@@ -178,7 +181,75 @@
   .meal-recipe-subtitle:first-child{margin-top:0;}
   .meal-ingredients, .meal-steps{margin:0;padding-left:20px;}
   .meal-ingredients li, .meal-steps li{margin-bottom:3px;}
-  .meal-note{margin-top:8px;color:var(--ink-soft);font-style:italic;}
+  .meal-extra-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-top:8px;
+  }
+  .hit-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:none;
+    background:none;
+    padding:0;
+    font-size:19px;
+    line-height:1;
+    cursor:pointer;
+    filter:grayscale(1);
+    opacity:0.45;
+  }
+  .hit-btn.active{filter:none;opacity:1;}
+  .tag-link{
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink-soft);
+    text-decoration:underline;
+    text-underline-offset:2px;
+    cursor:pointer;
+    background:none;
+    border:none;
+    padding:0;
+  }
+  .meal-note-display{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    font-style:italic;
+    margin-top:8px;
+    line-height:1.5;
+    cursor:pointer;
+  }
+  .meal-note-edit{margin-top:10px;}
+  .meal-note-edit textarea{
+    width:100%;
+    min-height:60px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:8px;
+    font-size:13px;
+    font-family:inherit;
+    color:var(--ink);
+    background:var(--paper);
+    resize:vertical;
+    box-sizing:border-box;
+  }
+  .meal-note-edit-actions{display:flex;gap:8px;margin-top:8px;}
+  .meal-btn{
+    border:1px solid var(--pantry);
+    background:var(--pantry);
+    color:#fff;
+    font-size:12.5px;
+    font-weight:700;
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .meal-btn.secondary{
+    background:var(--card);
+    color:var(--ink-soft);
+    border-color:var(--line);
+  }
   .section-block{margin-top:22px;}
   .shelf-tag{
     display:inline-block;
@@ -413,11 +484,12 @@ async function apiPost(body){
 // ==== State ====
 let items = [];   // [{section, category, item, qty}]
 let meals = [];   // [{day, meal, cooked}]  -- this week's plan only, "meal" is just a name
-let recipes = [];  // [{name, servings, ingredients: [...], steps: [...], note, lastCooked}]  -- permanent library
+let recipes = [];  // [{name, servings, ingredients: [...], steps: [...], note, lastCooked, favorite}]  -- permanent library
 let activeScope = "all";
 let query = "";
 let suppressPollUntil = 0; // skip the next poll right after a local save, to avoid a race overwriting an in-flight edit
 let expandedMealDays = new Set(); // which meal recipe panels are open — persists across re-renders
+let editingNoteDay = null; // which meal's note editor is open, if any (only one at a time)
 
 function linesToArray(text){
   return String(text || "").split("\n").map(l => l.trim()).filter(Boolean);
@@ -448,7 +520,8 @@ async function loadAll(isBackgroundPoll){
       ingredients: linesToArray(r.ingredients),
       steps: linesToArray(r.steps),
       note: String(r.note || "").trim(),
-      lastCooked: String(r.lastCooked || "").trim()
+      lastCooked: String(r.lastCooked || "").trim(),
+      favorite: String(r.favorite).trim().toLowerCase() === "true"
     }));
     setSyncStatus("ok", "Synced");
     render();
@@ -500,14 +573,18 @@ function findRecipe(name){
   return recipes.find(r => r.name.toLowerCase() === key) || null;
 }
 
-// Stamps today's date onto a recipe's "last cooked" field when its meal
-// gets checked off on the site. Non-critical — failure here shouldn't block
-// the meal save itself, so it's kept separate from saveMeal().
-async function stampLastCooked(mealName){
+// Stamps today's date on check, and remembers what Last Cooked was before the
+// stamp so an uncheck (revertLastCooked, below) can put it back. This memory
+// is kept on the meal object in memory only — it doesn't survive a page
+// reload, since the sheet only ever stores a single Last Cooked value, not a
+// history. Reverting after a reload just clears the date instead.
+async function stampLastCooked(m){
+  const mealName = m.meal.trim();
+  const recipe = findRecipe(mealName);
+  m.previousLastCooked = recipe ? recipe.lastCooked : "";
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD, local browser clock
   try{
     await apiPost({resource:"recipes", action:"upsert", name: mealName, lastCooked: today});
-    const recipe = findRecipe(mealName);
     if(recipe){
       recipe.lastCooked = today;
       render();
@@ -518,6 +595,70 @@ async function stampLastCooked(mealName){
     // instead of just looking like nothing happened.
     console.error("stampLastCooked failed for \"" + mealName + "\":", err);
     setSyncStatus("error", "Cooked, but Last Cooked date failed to save");
+  }
+}
+
+// Undoes stampLastCooked when a meal is un-checked — restores whatever Last
+// Cooked held right before it was stamped (blank, if this is the recipe's
+// first-ever cook, or an earlier date if it had one).
+async function revertLastCooked(m){
+  const mealName = m.meal.trim();
+  const prev = m.previousLastCooked !== undefined ? m.previousLastCooked : "";
+  try{
+    await apiPost({resource:"recipes", action:"upsert", name: mealName, lastCooked: prev});
+    const recipe = findRecipe(mealName);
+    if(recipe){
+      recipe.lastCooked = prev;
+      render();
+    }
+  }catch(err){
+    console.error("revertLastCooked failed for \"" + mealName + "\":", err);
+    setSyncStatus("error", "Un-cooked, but Last Cooked date failed to revert");
+  }
+  delete m.previousLastCooked;
+}
+
+// Toggles the thumbs-up "favorite" mark for a meal's recipe. Writes straight
+// to the Recipes tab, so it (like the note) sticks around across visits and
+// devices instead of resetting per session.
+async function saveFavorite(m){
+  const mealName = m.meal.trim();
+  if(!mealName) return;
+  const recipe = findRecipe(mealName);
+  const newValue = !(recipe && recipe.favorite);
+  try{
+    await apiPost({resource:"recipes", action:"upsert", name: mealName, favorite: newValue});
+    if(recipe){
+      recipe.favorite = newValue;
+    } else {
+      recipes.push({name: mealName, servings:"", ingredients:[], steps:[], note:"", lastCooked:"", favorite:newValue});
+    }
+    render();
+  }catch(err){
+    console.error("saveFavorite failed for \"" + mealName + "\":", err);
+    setSyncStatus("error", "Favorite mark failed to save");
+  }
+}
+
+// Saves a free-text note for a meal's recipe straight to the Recipes tab's
+// Note column — same field the recipe panel already reads from.
+async function saveNote(m, noteText){
+  const mealName = m.meal.trim();
+  if(!mealName) return;
+  const trimmed = noteText.trim();
+  const recipe = findRecipe(mealName);
+  try{
+    await apiPost({resource:"recipes", action:"upsert", name: mealName, note: trimmed});
+    if(recipe){
+      recipe.note = trimmed;
+    } else {
+      recipes.push({name: mealName, servings:"", ingredients:[], steps:[], note: trimmed, lastCooked:"", favorite:false});
+    }
+    editingNoteDay = null;
+    render();
+  }catch(err){
+    console.error("saveNote failed for \"" + mealName + "\":", err);
+    setSyncStatus("error", "Note failed to save");
   }
 }
 
@@ -546,13 +687,13 @@ function renderMeals(container){
     const card = document.createElement("div");
     card.className = "meal-card";
 
-    const row = document.createElement("div");
-    row.className = "meal-row";
-
     const day = document.createElement("div");
     day.className = "meal-day";
     day.textContent = m.day;
-    row.appendChild(day);
+    card.appendChild(day);
+
+    const row = document.createElement("div");
+    row.className = "meal-row";
 
     const input = document.createElement("input");
     input.className = "meal-name-input" + (m.cooked ? " cooked" : "");
@@ -571,10 +712,12 @@ function renderMeals(container){
     checkbox.checked = m.cooked;
     checkbox.addEventListener("change", () => {
       const becomingCooked = checkbox.checked && !m.cooked;
+      const becomingUncooked = !checkbox.checked && m.cooked;
       m.cooked = checkbox.checked;
       input.className = "meal-name-input" + (m.cooked ? " cooked" : "");
       saveMeal(m);
-      if(becomingCooked && m.meal.trim()) stampLastCooked(m.meal.trim());
+      if(becomingCooked && m.meal.trim()) stampLastCooked(m);
+      if(becomingUncooked && m.meal.trim()) revertLastCooked(m);
     });
     label.appendChild(checkbox);
     label.appendChild(document.createTextNode("Cooked"));
@@ -584,20 +727,23 @@ function renderMeals(container){
 
     const recipe = findRecipe(m.meal);
     // "hasRecipe" covers ANY recorded info, not just full ingredients/steps —
-    // otherwise a Last Cooked stamp on a meal with no recipe attached yet
-    // would silently never show.
-    const hasRecipe = !!recipe && (recipe.servings || recipe.ingredients.length > 0 || recipe.steps.length > 0 || recipe.note || recipe.lastCooked);
+    // otherwise a Last Cooked stamp, a favorite, or a note on a meal with no
+    // full recipe attached yet would silently never show.
+    const hasRecipe = !!recipe && (recipe.servings || recipe.ingredients.length > 0 || recipe.steps.length > 0 || recipe.note || recipe.lastCooked || recipe.favorite);
     const isOpen = expandedMealDays.has(m.day);
 
-    const toggle = document.createElement("button");
-    toggle.className = "recipe-toggle";
-    toggle.textContent = (isOpen ? "▾ " : "▸ ") + (hasRecipe ? "Recipe" : "No recipe yet");
-    toggle.onclick = () => {
+    const toggleRow = document.createElement("div");
+    toggleRow.className = "recipe-toggle-row";
+    const link = document.createElement("button");
+    link.className = "recipe-link";
+    link.textContent = isOpen ? "Hide recipe ▲" : (hasRecipe ? "View recipe ▼" : "No recipe yet ▼");
+    link.onclick = () => {
       if(expandedMealDays.has(m.day)) expandedMealDays.delete(m.day);
       else expandedMealDays.add(m.day);
       render();
     };
-    card.appendChild(toggle);
+    toggleRow.appendChild(link);
+    card.appendChild(toggleRow);
 
     if(isOpen){
       const recipeEl = document.createElement("div");
@@ -649,15 +795,70 @@ function renderMeals(container){
           });
           recipeEl.appendChild(ol);
         }
-        if(recipe.note){
-          const note = document.createElement("div");
-          note.className = "meal-note";
-          note.textContent = "Note: " + recipe.note;
-          recipeEl.appendChild(note);
-        }
       }
 
       card.appendChild(recipeEl);
+    }
+
+    // Thumbs-up + note — both write straight to this meal's Recipes row, so
+    // they persist across visits/devices like Last Cooked already does.
+    const extraRow = document.createElement("div");
+    extraRow.className = "meal-extra-row";
+
+    const isFavorite = !!(recipe && recipe.favorite);
+    const hitBtn = document.createElement("button");
+    hitBtn.className = "hit-btn" + (isFavorite ? " active" : "");
+    hitBtn.textContent = "👍";
+    hitBtn.title = isFavorite ? "Marked as a hit" : "Mark as a hit";
+    hitBtn.onclick = () => saveFavorite(m);
+    extraRow.appendChild(hitBtn);
+
+    const currentNote = recipe ? recipe.note : "";
+    const noteLink = document.createElement("button");
+    noteLink.className = "tag-link";
+    noteLink.textContent = currentNote ? "Edit note" : "+ Add note";
+    noteLink.onclick = () => {
+      editingNoteDay = editingNoteDay === m.day ? null : m.day;
+      render();
+    };
+    extraRow.appendChild(noteLink);
+
+    card.appendChild(extraRow);
+
+    if(currentNote && editingNoteDay !== m.day){
+      const noteDisplay = document.createElement("div");
+      noteDisplay.className = "meal-note-display";
+      noteDisplay.textContent = "“" + currentNote + "”";
+      noteDisplay.onclick = () => { editingNoteDay = m.day; render(); };
+      card.appendChild(noteDisplay);
+    }
+
+    if(editingNoteDay === m.day){
+      const noteEdit = document.createElement("div");
+      noteEdit.className = "meal-note-edit";
+
+      const textarea = document.createElement("textarea");
+      textarea.placeholder = "e.g. \"Kids loved this, but go lighter on the cumin next time.\"";
+      textarea.value = currentNote;
+      noteEdit.appendChild(textarea);
+
+      const noteActions = document.createElement("div");
+      noteActions.className = "meal-note-edit-actions";
+
+      const saveNoteBtn = document.createElement("button");
+      saveNoteBtn.className = "meal-btn";
+      saveNoteBtn.textContent = "Save";
+      saveNoteBtn.onclick = () => saveNote(m, textarea.value);
+      noteActions.appendChild(saveNoteBtn);
+
+      const cancelNoteBtn = document.createElement("button");
+      cancelNoteBtn.className = "meal-btn secondary";
+      cancelNoteBtn.textContent = "Cancel";
+      cancelNoteBtn.onclick = () => { editingNoteDay = null; render(); };
+      noteActions.appendChild(cancelNoteBtn);
+
+      noteEdit.appendChild(noteActions);
+      card.appendChild(noteEdit);
     }
 
     block.appendChild(card);
