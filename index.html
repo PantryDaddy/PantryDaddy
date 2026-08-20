@@ -579,7 +579,10 @@ function renderMeals(container){
     card.appendChild(row);
 
     const recipe = findRecipe(m.meal);
-    const hasRecipe = !!recipe && (recipe.ingredients.length > 0 || recipe.steps.length > 0);
+    // "hasRecipe" covers ANY recorded info, not just full ingredients/steps —
+    // otherwise a Last Cooked stamp on a meal with no recipe attached yet
+    // would silently never show.
+    const hasRecipe = !!recipe && (recipe.servings || recipe.ingredients.length > 0 || recipe.steps.length > 0 || recipe.note || recipe.lastCooked);
     const isOpen = expandedMealDays.has(m.day);
 
     const toggle = document.createElement("button");
