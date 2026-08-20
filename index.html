@@ -513,7 +513,11 @@ async function stampLastCooked(mealName){
       render();
     }
   }catch(err){
-    // Silent — the Cooked checkbox itself already saved fine; this is a nice-to-have.
+    // The Cooked checkbox itself already saved fine, so this stays non-blocking —
+    // but surface it instead of failing silently, so a real problem is visible
+    // instead of just looking like nothing happened.
+    console.error("stampLastCooked failed for \"" + mealName + "\":", err);
+    setSyncStatus("error", "Cooked, but Last Cooked date failed to save");
   }
 }
 
