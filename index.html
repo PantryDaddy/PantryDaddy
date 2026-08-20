@@ -451,7 +451,6 @@
     font-weight:700;
     font-size:14.5px;
     cursor:pointer;
-    border-bottom:1px dotted var(--ink-soft);
   }
   .qty-input{
     width:48px;
@@ -708,12 +707,36 @@ let editingDateField = null; // {key, field} identifying the one item+field date
 const PURCHASED_SECTIONS = new Set(["fridge"]);
 const OPENED_SECTIONS = new Set(["fridge", "pantry"]);
 
+// Within Fridge/Pantry, a handful of categories are fresh perishables —
+// something you buy and just use up, with no separate "unsealing" moment
+// worth tracking apart from when it was bought. A bag of apples or a fresh
+// chicken breast doesn't get "opened," it just starts getting eaten. This is
+// a CATEGORY list, not a section list, on purpose: it's not "fridge doesn't
+// track Opened," it's "these specific kinds of food don't" — a jar of
+// pickles or a tub of mayo living in the fridge is still a packaged good
+// with a real bought-vs-opened distinction, same as it would be in the
+// pantry, so a category like that (if one gets added under Fridge later)
+// still gets Opened tracking by default. Only these named categories are
+// excluded; anything new falls back to being tracked, which is the safer
+// default.
+const OPENED_EXCLUDED_CATEGORIES = new Set([
+  "produce", "meat & poultry", "dairy", "bread & tortillas", "bread & baked goods"
+]);
+
+function tracksOpened(it){
+  return OPENED_SECTIONS.has(it.section) && !OPENED_EXCLUDED_CATEGORIES.has(it.category.trim().toLowerCase());
+}
+
 // The app's four browsing sections and their display labels — used for the
 // filter chips, the shelf tags above each group of items, and the Section
 // dropdown in Add Items. Adding a new section later just means adding it
 // here (plus a matching CSS color and chip in the header markup).
 const SECTIONS = ["pantry", "freezer", "fridge", "household"];
 const SECTION_LABELS = {pantry: "Pantry", freezer: "Freezer", fridge: "Fridge", household: "Household"};
+
+// How much the item-list +/- stepper buttons move qty by on each tap. Typed
+// exact amounts (tapping the number itself) still accept any value.
+const QTY_STEP = 0.25;
 
 // Splits a recipe's Ingredients/Steps cell into a list. Accepts either a
 // real newline between items (how early recipes were entered, e.g. via CSV
@@ -904,11 +927,12 @@ function daysAgo(iso){
 
 // Whole -> fraction (e.g. 1 -> 0.75) reads as "just opened"; back to a whole
 // number (used up to 0, or restocked to a round number) clears that stamp.
-// Only called for Fridge/Pantry items (see OPENED_SECTIONS) and only from
-// the main item-list quantity controls — not from Add Items or the purchase
-// log, where a quantity change means "new stock," not "using what's there."
+// Only called for items that track Opened at all (see tracksOpened) and
+// only from the main item-list quantity controls — not from Add Items or
+// the purchase log, where a quantity change means "new stock," not "using
+// what's there."
 function maybeStampOpened(it, prevQty, newQty){
-  if(!OPENED_SECTIONS.has(it.section)) return {};
+  if(!tracksOpened(it)) return {};
   const wasWhole = Number.isInteger(prevQty);
   const isWhole = Number.isInteger(newQty);
   if(wasWhole && !isWhole && newQty > 0 && !it.opened){
@@ -1594,7 +1618,7 @@ function renderItems(container){
         const tags = document.createElement("div");
         tags.className = "item-tags";
         if(PURCHASED_SECTIONS.has(it.section)) tags.appendChild(renderDateBadge(it, "purchased", "Bought", "purchased"));
-        if(OPENED_SECTIONS.has(it.section)) tags.appendChild(renderDateBadge(it, "opened", "Opened", "opened"));
+        if(tracksOpened(it)) tags.appendChild(renderDateBadge(it, "opened", "Opened", "opened"));
         tags.appendChild(renderExpirationBadge(it));
         main.appendChild(tags);
 
@@ -1609,7 +1633,7 @@ function renderItems(container){
         minus.textContent = "–";
         minus.onclick = () => {
           const prevQty = it.qty;
-          it.qty = Math.max(0, Math.round((it.qty - 1) * 100) / 100);
+          it.qty = Math.max(0, Math.round((it.qty - QTY_STEP) * 100) / 100);
           saveItemQty(it, maybeStampOpened(it, prevQty, it.qty));
           render();
         };
@@ -1648,7 +1672,7 @@ function renderItems(container){
         plus.textContent = "+";
         plus.onclick = () => {
           const prevQty = it.qty;
-          it.qty = Math.round((it.qty + 1) * 100) / 100;
+          it.qty = Math.round((it.qty + QTY_STEP) * 100) / 100;
           saveItemQty(it, maybeStampOpened(it, prevQty, it.qty));
           render();
         };
