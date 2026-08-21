@@ -373,16 +373,47 @@
     border-radius:6px;
     padding:2px;
   }
-  .ing-link-select{
-    font-size:12px;
-    font-family:inherit;
-    color:var(--ink);
+  .ing-picker{
+    width:100%;
+    max-width:340px;
     background:var(--card);
     border:1px solid var(--line);
-    border-radius:6px;
-    padding:3px 4px;
-    max-width:100%;
+    border-radius:8px;
+    padding:8px;
+    margin-top:2px;
   }
+  .ing-search-input{
+    width:100%;
+    box-sizing:border-box;
+    font-size:13px;
+    font-family:inherit;
+    color:var(--ink);
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:6px 8px;
+  }
+  .ing-search-results{
+    margin-top:6px;
+    max-height:160px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+  }
+  .ing-search-option{
+    text-align:left;
+    font-size:12.5px;
+    font-family:inherit;
+    color:var(--ink);
+    background:transparent;
+    border:1px solid transparent;
+    border-radius:6px;
+    padding:5px 7px;
+    cursor:pointer;
+  }
+  .ing-search-option:hover{background:var(--paper);border-color:var(--line);}
+  .ing-search-hint{font-size:12px;color:var(--ink-soft);padding:5px 7px;}
   .ing-unmatched{color:var(--danger);font-weight:600;}
   .ing-actions{display:flex;gap:8px;margin-top:10px;}
   .section-block{margin-top:22px;}
@@ -821,6 +852,7 @@ let collapsedCategories = new Set(); // "section|category" keys currently collap
 let openIngredientDays = new Set(); // which meals' ingredient checklist is open
 let markedIngredients = {};  // markedIngredients[day][ingredientIndex] = {itemKey, amount} — already deducted this session
 let manualLinks = {};        // manualLinks[day][ingredientIndex] = itemKey ("" means "explicitly no match") — overrides the auto-match below
+let ingSearchOpen = new Set(); // "day|ingredientIndex" keys currently showing the pantry-item search box instead of a resolved "Linked to" line
 
 // Which sections get which freshness badge. Purchased ("Bought Xd ago") is
 // fridge-only and normally auto-set by logging a grocery purchase; Opened is
@@ -1365,20 +1397,60 @@ function findRecipe(name){
   return recipes.find(r => r.name.toLowerCase() === key) || null;
 }
 
-// Stamps today's date on check, and remembers what Last Cooked was before the
-// stamp so an uncheck (revertLastCooked, below) can put it back. This memory
-// is kept on the meal object in memory only — it doesn't survive a page
-// reload, since the sheet only ever stores a single Last Cooked value, not a
-// history. Reverting after a reload just clears the date instead.
+// The Meals tab only ever stores a bare weekday name ("Monday", "Tuesday", …)
+// since the plan is rebuilt every week — there's no year/date on the row
+// itself. These helpers map that name to the actual calendar date it refers
+// to *this* week, so the day label can show a real date and so ticking
+// "Cooked" late (e.g. checking Monday's box on Thursday) still stamps the
+// date the meal was actually scheduled for, not the day you happened to
+// click the checkbox.
+const MEAL_WEEKDAY_INDEX = {monday:0, tuesday:1, wednesday:2, thursday:3, friday:4, saturday:5, sunday:6};
+
+function mondayOfThisWeek(){
+  const now = new Date();
+  const dow = now.getDay(); // 0=Sun..6=Sat
+  const diff = (dow === 0) ? -6 : (1 - dow);
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff);
+}
+
+// Returns a Date for the given weekday name, in the current calendar week —
+// or null if the text isn't a recognized weekday (e.g. a custom day label),
+// so callers can fall back to just showing/using the plain name.
+function dateForMealDay(dayName){
+  const offset = MEAL_WEEKDAY_INDEX[String(dayName || "").trim().toLowerCase()];
+  if(offset === undefined) return null;
+  const monday = mondayOfThisWeek();
+  return new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + offset);
+}
+
+function formatMealDate(d){
+  return d.toLocaleDateString(undefined, {month:"short", day:"numeric"});
+}
+
+function isoDateForMealDay(dayName){
+  const d = dateForMealDay(dayName);
+  if(!d) return null;
+  const y = d.getFullYear(), mo = String(d.getMonth() + 1).padStart(2, "0"), da = String(d.getDate()).padStart(2, "0");
+  return y + "-" + mo + "-" + da;
+}
+
+// Stamps the calendar date this meal's day actually falls on this week (not
+// necessarily today — see the helpers above), and remembers what Last Cooked
+// was before the stamp so an uncheck (revertLastCooked, below) can put it
+// back. This memory is kept on the meal object in memory only — it doesn't
+// survive a page reload, since the sheet only ever stores a single Last
+// Cooked value, not a history. Reverting after a reload just clears the date
+// instead.
 async function stampLastCooked(m){
   const mealName = m.meal.trim();
   const recipe = findRecipe(mealName);
   m.previousLastCooked = recipe ? recipe.lastCooked : "";
-  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD, local browser clock
+  // Falls back to today's date only if m.day isn't a recognized weekday name.
+  const stampDate = isoDateForMealDay(m.day) || new Date().toISOString().slice(0, 10);
   try{
-    await apiPost({resource:"recipes", action:"upsert", name: mealName, lastCooked: today});
+    await apiPost({resource:"recipes", action:"upsert", name: mealName, lastCooked: stampDate});
     if(recipe){
-      recipe.lastCooked = today;
+      recipe.lastCooked = stampDate;
       render();
     }
   }catch(err){
@@ -1548,7 +1620,8 @@ function renderMeals(container){
 
     const day = document.createElement("div");
     day.className = "meal-day";
-    day.textContent = m.day;
+    const mealDate = dateForMealDay(m.day);
+    day.textContent = mealDate ? (m.day + ", " + formatMealDate(mealDate)) : m.day;
     card.appendChild(day);
 
     const row = document.createElement("div");
@@ -1749,6 +1822,73 @@ function renderMeals(container){
 // and un-marking (undo) — no separate reset flow to keep track of, and no
 // numeric entry required for a line unless it's actually got a resolved
 // pantry item behind it.
+// A searchable pantry-item picker: a text box that filters live as you
+// type, plus a list of clickable results. Deliberately NOT wired through the
+// app's usual render() cycle on every keystroke — that would rebuild the
+// whole page and drop focus out of the input mid-type. Instead it updates
+// its own small results list directly, the same way the item-list qty-input
+// edits itself without a full re-render. render() only gets called once a
+// result is actually clicked (onPick), since that's the point where state
+// genuinely needs to propagate everywhere else.
+function buildIngredientLinkPicker(itemList, onPick){
+  const wrap = document.createElement("div");
+  wrap.className = "ing-picker";
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "ing-search-input";
+  input.placeholder = "Search pantry items…";
+  input.autocomplete = "off";
+  wrap.appendChild(input);
+
+  const results = document.createElement("div");
+  results.className = "ing-search-results";
+  wrap.appendChild(results);
+
+  const MAX_RESULTS = 25;
+
+  function paintResults(query){
+    results.innerHTML = "";
+    const q = query.trim().toLowerCase();
+    if(!q){
+      const hint = document.createElement("div");
+      hint.className = "ing-search-hint";
+      hint.textContent = "Type to search " + itemList.length + " pantry items…";
+      results.appendChild(hint);
+      return;
+    }
+    const matches = itemList
+      .filter(it => it.item.toLowerCase().includes(q))
+      .sort((a, b) => a.item.localeCompare(b.item));
+    if(matches.length === 0){
+      const none = document.createElement("div");
+      none.className = "ing-search-hint";
+      none.textContent = "No pantry items match.";
+      results.appendChild(none);
+      return;
+    }
+    matches.slice(0, MAX_RESULTS).forEach(it => {
+      const opt = document.createElement("button");
+      opt.type = "button";
+      opt.className = "ing-search-option";
+      opt.textContent = it.item + " (" + it.qty + " in stock, " + SECTION_LABELS[it.section] + ")";
+      opt.onclick = () => onPick(it);
+      results.appendChild(opt);
+    });
+    if(matches.length > MAX_RESULTS){
+      const more = document.createElement("div");
+      more.className = "ing-search-hint";
+      more.textContent = (matches.length - MAX_RESULTS) + " more — keep typing to narrow.";
+      results.appendChild(more);
+    }
+  }
+
+  input.addEventListener("input", () => paintResults(input.value));
+  paintResults("");
+
+  return wrap;
+}
+
 function renderIngredientChecklist(m, recipe){
   const wrap = document.createElement("div");
   wrap.className = "ing-checklist";
@@ -1801,36 +1941,45 @@ function renderIngredientChecklist(m, recipe){
       note.textContent = "Used " + already.amount + (linkedItem ? " — now " + linkedItem.qty + " in stock" : " (item no longer in the pantry list)");
       meta.appendChild(note);
     } else {
-      const select = document.createElement("select");
-      select.className = "ing-link-select";
-      const noneOpt = document.createElement("option");
-      noneOpt.value = "";
-      noneOpt.textContent = auto ? "— not this, pick a different item —" : "— pick a pantry item —";
-      select.appendChild(noneOpt);
-      SECTIONS.forEach(sec => {
-        const group = items.filter(it => it.section === sec);
-        if(!group.length) return;
-        const og = document.createElement("optgroup");
-        og.label = SECTION_LABELS[sec];
-        group.slice().sort((a, b) => a.item.localeCompare(b.item)).forEach(it => {
-          const opt = document.createElement("option");
-          opt.value = itemKey(it);
-          opt.textContent = it.item + " (" + it.qty + " in stock)";
-          if(linkedItem && itemKey(it) === itemKey(linkedItem)) opt.selected = true;
-          og.appendChild(opt);
-        });
-        select.appendChild(og);
-      });
-      select.onchange = () => {
-        dayLinks[idx] = select.value;
-        render();
-      };
-      meta.appendChild(select);
+      const rowKey = m.day + "|" + idx;
+      // Show the search picker whenever there's nothing resolved yet, or the
+      // person explicitly asked to change a resolved link.
+      const searching = !linkedItem || ingSearchOpen.has(rowKey);
 
-      if(linkedItem){
-        const stockNote = document.createElement("span");
-        stockNote.textContent = "In stock: " + linkedItem.qty;
-        meta.appendChild(stockNote);
+      if(searching){
+        const picker = buildIngredientLinkPicker(items, (it) => {
+          dayLinks[idx] = itemKey(it);
+          ingSearchOpen.delete(rowKey);
+          render();
+        });
+        meta.appendChild(picker);
+
+        if(linkedItem){
+          // There's already a link (from auto-match or an earlier manual
+          // pick) — "Change" got clicked, so offer a way back without
+          // forcing a re-pick.
+          const cancelBtn = document.createElement("button");
+          cancelBtn.className = "tag-link";
+          cancelBtn.textContent = "Cancel";
+          cancelBtn.onclick = () => { ingSearchOpen.delete(rowKey); render(); };
+          meta.appendChild(cancelBtn);
+        } else {
+          const unmatched = document.createElement("span");
+          unmatched.className = "ing-unmatched";
+          unmatched.textContent = "Search above and pick a pantry item to enable ticking this off.";
+          meta.appendChild(unmatched);
+        }
+        check.disabled = true;
+      } else {
+        const linkedLine = document.createElement("span");
+        linkedLine.textContent = "Linked to: " + linkedItem.item + " (" + linkedItem.qty + " in stock)";
+        meta.appendChild(linkedLine);
+
+        const changeBtn = document.createElement("button");
+        changeBtn.className = "tag-link";
+        changeBtn.textContent = "Change";
+        changeBtn.onclick = () => { ingSearchOpen.add(rowKey); render(); };
+        meta.appendChild(changeBtn);
 
         meta.appendChild(document.createTextNode("Used:"));
         amtInput = document.createElement("input");
@@ -1840,12 +1989,6 @@ function renderIngredientChecklist(m, recipe){
         amtInput.step = "0.25";
         amtInput.value = defaultIngredientAmount(line);
         meta.appendChild(amtInput);
-      } else {
-        check.disabled = true;
-        const unmatched = document.createElement("span");
-        unmatched.className = "ing-unmatched";
-        unmatched.textContent = "Pick a pantry item above to enable ticking this off.";
-        meta.appendChild(unmatched);
       }
     }
 
