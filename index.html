@@ -190,7 +190,7 @@
   }
   .meal-row{
     display:flex;
-    align-items:center;
+    align-items:flex-start;
     gap:10px;
   }
   .meal-name-input{
@@ -200,10 +200,16 @@
     background:transparent;
     font-size:14.5px;
     font-weight:600;
+    font-family:inherit;
     color:var(--ink);
     padding:6px 8px;
     margin-left:-8px;
     border-radius:7px;
+    resize:none;
+    overflow:hidden;
+    white-space:pre-wrap;
+    overflow-wrap:break-word;
+    line-height:1.35;
   }
   .meal-name-input:focus{border-color:var(--line);background:var(--paper);outline:none;}
   .meal-name-input.cooked{text-decoration:line-through;color:var(--ink-soft);}
@@ -216,6 +222,7 @@
     flex-shrink:0;
     user-select:none;
     cursor:pointer;
+    padding-top:8px;
   }
   .meal-cooked-label input{accent-color:var(--pantry);width:16px;height:16px;}
   .recipe-toggle-row{margin-top:4px;display:flex;flex-wrap:wrap;gap:14px;}
@@ -1391,6 +1398,14 @@ async function saveMeal(m){
   }
 }
 
+// Grows a meal-name textarea to exactly fit its (possibly wrapped) content —
+// reset height to auto first so shrinking (e.g. after deleting text) works
+// too, not just growing.
+function autoGrowMealName(textarea){
+  textarea.style.height = "auto";
+  textarea.style.height = textarea.scrollHeight + "px";
+}
+
 function findRecipe(name){
   const key = String(name || "").trim().toLowerCase();
   if(!key) return null;
@@ -1627,10 +1642,24 @@ function renderMeals(container){
     const row = document.createElement("div");
     row.className = "meal-row";
 
-    const input = document.createElement("input");
+    // A textarea (not a plain input) so a long meal name wraps to a second
+    // line on narrow screens instead of scrolling off out of view. rows=1
+    // plus the autoGrowMealName helper (called once after this card is in
+    // the live DOM, and again on every keystroke) keeps it exactly as tall
+    // as its wrapped content and no taller.
+    const input = document.createElement("textarea");
     input.className = "meal-name-input" + (m.cooked ? " cooked" : "");
-    input.type = "text";
+    input.rows = 1;
     input.value = m.meal;
+    input.addEventListener("input", () => autoGrowMealName(input));
+    input.addEventListener("keydown", (e) => {
+      // Meal names are single-line data — Enter confirms (blurs, which
+      // fires "change" below) instead of inserting a literal line break.
+      if(e.key === "Enter"){
+        e.preventDefault();
+        input.blur();
+      }
+    });
     input.addEventListener("change", () => {
       m.meal = input.value.trim();
       saveMeal(m);
@@ -1815,6 +1844,10 @@ function renderMeals(container){
   });
 
   container.appendChild(block);
+  // Size each meal-name textarea to its wrapped content now that it's part
+  // of the live document — scrollHeight only reports correctly once
+  // connected, so this couldn't happen any earlier in the loop above.
+  block.querySelectorAll(".meal-name-input").forEach(autoGrowMealName);
 }
 
 // Builds the expandable "Mark ingredients used" checklist for one meal card.
