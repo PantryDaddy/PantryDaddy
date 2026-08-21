@@ -218,7 +218,7 @@
     cursor:pointer;
   }
   .meal-cooked-label input{accent-color:var(--pantry);width:16px;height:16px;}
-  .recipe-toggle-row{margin-top:4px;}
+  .recipe-toggle-row{margin-top:4px;display:flex;flex-wrap:wrap;gap:14px;}
   .recipe-link{
     border:none;
     background:none;
@@ -322,6 +322,69 @@
     color:var(--ink-soft);
     border-color:var(--line);
   }
+  .ing-checklist{
+    margin:8px 0 0;
+    padding:10px 12px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:8px;
+  }
+  .ing-hint{font-size:12px;color:var(--ink-soft);margin-bottom:10px;line-height:1.4;}
+  .ing-row{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    padding:8px 0;
+    border-top:1px solid var(--line);
+  }
+  .ing-row:first-of-type{border-top:none;padding-top:0;}
+  .ing-row.done{opacity:0.55;}
+  .ing-check{
+    margin-top:3px;
+    width:18px;
+    height:18px;
+    flex-shrink:0;
+    accent-color:var(--pantry);
+    cursor:pointer;
+  }
+  .ing-check:disabled{cursor:not-allowed;}
+  .ing-body{flex:1;min-width:0;}
+  .ing-text{font-size:13.5px;line-height:1.4;}
+  .ing-text.done{text-decoration:line-through;color:var(--ink-soft);}
+  .ing-meta{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:5px;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .ing-amt-input{
+    width:44px;
+    text-align:center;
+    font-variant-numeric:tabular-nums;
+    font-weight:700;
+    font-size:13px;
+    font-family:inherit;
+    color:var(--ink);
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:2px;
+  }
+  .ing-link-select{
+    font-size:12px;
+    font-family:inherit;
+    color:var(--ink);
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:3px 4px;
+    max-width:100%;
+  }
+  .ing-unmatched{color:var(--danger);font-weight:600;}
+  .ing-actions{display:flex;gap:8px;margin-top:10px;}
   .section-block{margin-top:22px;}
   .shelf-tag{
     display:inline-block;
@@ -751,6 +814,14 @@ let actionsMenuOpen = false; // whether the "Actions" dropdown menu is open — 
 let editingDateField = null; // {key, field} identifying the one item+field date editor open right now, if any — only one at a time, same pattern as editingNoteDay
 let collapsedCategories = new Set(); // "section|category" keys currently collapsed — persists across re-renders, but not across a page reload (in-memory only, same as expandedMealDays)
 
+// ---- Mark ingredients used ----
+// All three are in-memory only (same as expandedMealDays etc.) — a fresh
+// page load starts clean, which is fine since Meals itself is disposable
+// and gets overwritten week to week anyway.
+let openIngredientDays = new Set(); // which meals' ingredient checklist is open
+let markedIngredients = {};  // markedIngredients[day][ingredientIndex] = {itemKey, amount} — already deducted this session
+let manualLinks = {};        // manualLinks[day][ingredientIndex] = itemKey ("" means "explicitly no match") — overrides the auto-match below
+
 // Which sections get which freshness badge. Purchased ("Bought Xd ago") is
 // fridge-only and normally auto-set by logging a grocery purchase; Opened is
 // fridge+pantry and auto-stamped when a quantity crosses from a whole number
@@ -1008,6 +1079,102 @@ function maybeStampOpened(it, prevQty, newQty){
     return {opened: ""};
   }
   return {};
+}
+
+// ==== Mark ingredients used ====
+// Reuses the exact same save path as the item-list +/- stepper (saveItemQty
+// + maybeStampOpened) — deducting via a recipe is not a different kind of
+// write than tapping "-" a few times, so it shouldn't have a different code
+// path. That's also why there's no separate backend endpoint for this: the
+// existing items/upsert call already does everything needed.
+
+// Words that don't help distinguish a recipe ingredient line from a pantry
+// item name — stripped before comparing the two.
+const ING_STOPWORDS = new Set([
+  "the","a","an","of","with","and","or","great","value","simply","nature",
+  "organic","fresh","frozen","sliced","diced","chopped","trimmed","cooked",
+  "raw","bettergoods","specialty","no","added","sugar","original","extra",
+  "bag","box","jar","can","cans","carton","cartons","pouch","pouches","ct",
+  "oz","ounce","ounces","lb","lbs","pound","pounds","cup","cups","tsp",
+  "tbsp","large","small","medium"
+]);
+
+// Strips a plain trailing "s" (lemons -> lemon, onions -> onion) so a
+// singular recipe line ("Lemon") still matches a plural pantry name
+// ("Lemons Bag") without needing a real stemming library. Deliberately
+// skips words ending "us"/"ss" (asparagus, hummus, swiss) so it doesn't
+// mangle words that are already singular.
+function ingStem(t){
+  if(t.length > 3 && /s$/.test(t) && !/[us]s$/.test(t)) return t.slice(0, -1);
+  return t;
+}
+
+function ingTokenize(name){
+  return name.toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter(t => t.length > 1 && isNaN(Number(t)) && !ING_STOPWORDS.has(t))
+    .map(ingStem);
+}
+
+// Jaccard similarity over token sets — cheap, dependency-free, good enough
+// for matching a recipe line like "one 12 oz bag green beans, trimmed"
+// against an Items entry like "Green Beans (fresh)".
+function ingNameSimilarity(a, b){
+  const ta = new Set(ingTokenize(a));
+  const tb = new Set(ingTokenize(b));
+  if(ta.size === 0 || tb.size === 0) return 0;
+  let intersection = 0;
+  ta.forEach(t => { if(tb.has(t)) intersection++; });
+  const union = new Set([...ta, ...tb]).size;
+  return intersection / union;
+}
+
+const ING_MATCH_MIN = 0.2; // below this, don't guess — let the person pick from the dropdown instead
+
+// Best current Items-tab match for one recipe ingredient line, or null if
+// nothing scores high enough to suggest with any confidence. This is a
+// best-effort guess exactly like matching a purchase-log line to an Items
+// row elsewhere in this app — never assumed to be authoritative, always
+// shown so it can be corrected.
+function bestItemMatch(ingredientText){
+  let best = null, bestScore = 0;
+  items.forEach(it => {
+    const score = ingNameSimilarity(ingredientText, it.item);
+    if(score > bestScore){ bestScore = score; best = it; }
+  });
+  if(!best || bestScore < ING_MATCH_MIN) return null;
+  return best;
+}
+
+// Pulls a leading count off an ingredient line as a sensible default "used"
+// amount — "2 cans white beans" -> 2, "1 lb salmon fillet" -> 1, a line with
+// no leading number (e.g. "Lemon") -> 1.
+function defaultIngredientAmount(text){
+  const m = text.trim().match(/^(\d+(\.\d+)?)/);
+  return m ? parseFloat(m[1]) : 1;
+}
+
+function markIngredientUsed(day, idx, it, amount){
+  const prevQty = it.qty;
+  it.qty = Math.max(0, Math.round((it.qty - amount) * 100) / 100);
+  saveItemQty(it, maybeStampOpened(it, prevQty, it.qty));
+  if(!markedIngredients[day]) markedIngredients[day] = {};
+  markedIngredients[day][idx] = {itemKey: itemKey(it), amount};
+  render();
+}
+
+function undoIngredientMark(day, idx){
+  const mark = markedIngredients[day] && markedIngredients[day][idx];
+  if(!mark) return;
+  const it = items.find(x => itemKey(x) === mark.itemKey);
+  if(it){
+    const prevQty = it.qty;
+    it.qty = Math.round((it.qty + mark.amount) * 100) / 100;
+    saveItemQty(it, maybeStampOpened(it, prevQty, it.qty));
+  }
+  delete markedIngredients[day][idx];
+  render();
 }
 
 function expInfo(iso){
@@ -1435,6 +1602,20 @@ function renderMeals(container){
       render();
     };
     toggleRow.appendChild(link);
+
+    if(recipe && recipe.ingredients.length){
+      const ingOpen = openIngredientDays.has(m.day);
+      const ingBtn = document.createElement("button");
+      ingBtn.className = "recipe-link";
+      ingBtn.textContent = ingOpen ? "Hide ingredient checklist ▲" : "Mark ingredients used ▼";
+      ingBtn.onclick = () => {
+        if(openIngredientDays.has(m.day)) openIngredientDays.delete(m.day);
+        else openIngredientDays.add(m.day);
+        render();
+      };
+      toggleRow.appendChild(ingBtn);
+    }
+
     card.appendChild(toggleRow);
 
     if(isOpen){
@@ -1490,6 +1671,10 @@ function renderMeals(container){
       }
 
       card.appendChild(recipeEl);
+    }
+
+    if(openIngredientDays.has(m.day) && recipe && recipe.ingredients.length){
+      card.appendChild(renderIngredientChecklist(m, recipe));
     }
 
     // Thumbs-up + note — both write straight to this meal's Recipes row, so
@@ -1557,6 +1742,139 @@ function renderMeals(container){
   });
 
   container.appendChild(block);
+}
+
+// Builds the expandable "Mark ingredients used" checklist for one meal card.
+// Each row's checkbox is the single control for both marking used (deduct)
+// and un-marking (undo) — no separate reset flow to keep track of, and no
+// numeric entry required for a line unless it's actually got a resolved
+// pantry item behind it.
+function renderIngredientChecklist(m, recipe){
+  const wrap = document.createElement("div");
+  wrap.className = "ing-checklist";
+
+  const hint = document.createElement("div");
+  hint.className = "ing-hint";
+  hint.textContent = "Tick an ingredient off as you use it — it deducts from that item's stock right away. Untick to undo. Linked to the wrong pantry item? Pick a different one below.";
+  wrap.appendChild(hint);
+
+  if(!markedIngredients[m.day]) markedIngredients[m.day] = {};
+  if(!manualLinks[m.day]) manualLinks[m.day] = {};
+  const dayMarks = markedIngredients[m.day];
+  const dayLinks = manualLinks[m.day];
+
+  recipe.ingredients.forEach((line, idx) => {
+    const already = dayMarks[idx]; // {itemKey, amount} once ticked
+
+    const row = document.createElement("div");
+    row.className = "ing-row" + (already ? " done" : "");
+
+    const check = document.createElement("input");
+    check.type = "checkbox";
+    check.className = "ing-check";
+    check.checked = !!already;
+
+    const body = document.createElement("div");
+    body.className = "ing-body";
+
+    const text = document.createElement("div");
+    text.className = "ing-text" + (already ? " done" : "");
+    text.textContent = line;
+    body.appendChild(text);
+
+    const meta = document.createElement("div");
+    meta.className = "ing-meta";
+
+    const auto = bestItemMatch(line);
+    const manualKey = dayLinks[idx];
+    // Already-ticked rows are locked to whatever item was actually deducted
+    // (that's what Undo needs to reverse) — otherwise a manual pick wins
+    // over the auto-match, and the auto-match is the fallback.
+    const linkedItem = already
+      ? items.find(it => itemKey(it) === already.itemKey)
+      : (manualKey !== undefined ? (manualKey ? items.find(it => itemKey(it) === manualKey) : null) : auto);
+
+    let amtInput = null;
+
+    if(already){
+      const note = document.createElement("span");
+      note.textContent = "Used " + already.amount + (linkedItem ? " — now " + linkedItem.qty + " in stock" : " (item no longer in the pantry list)");
+      meta.appendChild(note);
+    } else {
+      const select = document.createElement("select");
+      select.className = "ing-link-select";
+      const noneOpt = document.createElement("option");
+      noneOpt.value = "";
+      noneOpt.textContent = auto ? "— not this, pick a different item —" : "— pick a pantry item —";
+      select.appendChild(noneOpt);
+      SECTIONS.forEach(sec => {
+        const group = items.filter(it => it.section === sec);
+        if(!group.length) return;
+        const og = document.createElement("optgroup");
+        og.label = SECTION_LABELS[sec];
+        group.slice().sort((a, b) => a.item.localeCompare(b.item)).forEach(it => {
+          const opt = document.createElement("option");
+          opt.value = itemKey(it);
+          opt.textContent = it.item + " (" + it.qty + " in stock)";
+          if(linkedItem && itemKey(it) === itemKey(linkedItem)) opt.selected = true;
+          og.appendChild(opt);
+        });
+        select.appendChild(og);
+      });
+      select.onchange = () => {
+        dayLinks[idx] = select.value;
+        render();
+      };
+      meta.appendChild(select);
+
+      if(linkedItem){
+        const stockNote = document.createElement("span");
+        stockNote.textContent = "In stock: " + linkedItem.qty;
+        meta.appendChild(stockNote);
+
+        meta.appendChild(document.createTextNode("Used:"));
+        amtInput = document.createElement("input");
+        amtInput.type = "number";
+        amtInput.className = "ing-amt-input";
+        amtInput.min = "0";
+        amtInput.step = "0.25";
+        amtInput.value = defaultIngredientAmount(line);
+        meta.appendChild(amtInput);
+      } else {
+        check.disabled = true;
+        const unmatched = document.createElement("span");
+        unmatched.className = "ing-unmatched";
+        unmatched.textContent = "Pick a pantry item above to enable ticking this off.";
+        meta.appendChild(unmatched);
+      }
+    }
+
+    check.onchange = () => {
+      if(already){
+        undoIngredientMark(m.day, idx);
+        return;
+      }
+      if(!linkedItem){ check.checked = false; return; }
+      const amt = amtInput ? parseFloat(amtInput.value) : 1;
+      markIngredientUsed(m.day, idx, linkedItem, (isNaN(amt) || amt <= 0) ? 1 : amt);
+    };
+
+    body.appendChild(meta);
+    row.appendChild(check);
+    row.appendChild(body);
+    wrap.appendChild(row);
+  });
+
+  const actions = document.createElement("div");
+  actions.className = "ing-actions";
+  const closeBtn = document.createElement("button");
+  closeBtn.className = "meal-btn secondary";
+  closeBtn.textContent = "Close";
+  closeBtn.onclick = () => { openIngredientDays.delete(m.day); render(); };
+  actions.appendChild(closeBtn);
+  wrap.appendChild(actions);
+
+  return wrap;
 }
 
 function renderMealsImport(container){
