@@ -840,6 +840,17 @@ let mealsExpanded = true; // whether the whole "This Week's Meals" section is op
 let addItemsExpanded = false; // whether the "Add Items" section is open — persists across re-renders
 let mealsImportExpanded = false; // whether "Update This Week's Meals" is open — persists across re-renders
 let purchasesImportExpanded = false; // whether "Log a Grocery Purchase" is open — persists across re-renders
+
+// Draft text for the three paste-in boxes below, held here (not just in the
+// DOM) so a background poll's render() doesn't wipe out an in-progress paste
+// before the person taps the submit button. render() rebuilds these
+// textareas from scratch every time it runs — including on the ~20s
+// background poll in loadAll(true) — so without this, anything typed or
+// pasted into one of these boxes could vanish out from under you if the poll
+// lands mid-paste. Each is cleared back to "" only on a successful submit.
+let mealsImportDraft = "";
+let purchasesImportDraft = "";
+let bulkItemsDraft = "";
 let actionsMenuOpen = false; // whether the "Actions" dropdown menu is open — persists across re-renders
 let editingDateField = null; // {key, field} identifying the one item+field date editor open right now, if any — only one at a time, same pattern as editingNoteDay
 let collapsedCategories = new Set(); // "section|category" keys currently collapsed — persists across re-renders, but not across a page reload (in-memory only, same as expandedMealDays)
@@ -2036,6 +2047,8 @@ function renderMealsImport(container){
   const textarea = document.createElement("textarea");
   textarea.rows = 10;
   textarea.placeholder = "Day: Monday\nName: Sheet-Pan Salmon with Green Beans & Rice\nServings: 4\nIngredients:\n- 1 lb salmon fillet\n- 1 cup jasmine rice\nSteps:\n1. Preheat oven to 400°F.\n2. Roast salmon 12-15 min until it flakes easily.\nNote:\n---\nDay: Tuesday\n…";
+  textarea.value = mealsImportDraft;
+  textarea.addEventListener("input", () => { mealsImportDraft = textarea.value; });
   block.appendChild(textarea);
 
   const applyBtn = document.createElement("button");
@@ -2078,6 +2091,7 @@ function renderMealsImport(container){
     applyBtn.disabled = false;
     applyBtn.textContent = "Update meal plan";
     textarea.value = "";
+    mealsImportDraft = "";
     suppressPollUntil = Date.now() + 4000;
     setSyncStatus("ok", "Synced");
     await loadAll();
@@ -2106,6 +2120,8 @@ function renderPurchasesImport(container){
   const textarea = document.createElement("textarea");
   textarea.rows = 8;
   textarea.placeholder = "Date: 2026-08-20\nStore: Walmart\nFriendly Farms Milk (1 gal) | 1 | 3.55 | fridge | Dairy\nGreat Value Mayonnaise (30 fl oz) | 1 | 2.97 | pantry | Condiments & Sauces";
+  textarea.value = purchasesImportDraft;
+  textarea.addEventListener("input", () => { purchasesImportDraft = textarea.value; });
   block.appendChild(textarea);
 
   const applyBtn = document.createElement("button");
@@ -2139,6 +2155,7 @@ function renderPurchasesImport(container){
     applyBtn.disabled = false;
     applyBtn.textContent = "Log purchases";
     textarea.value = "";
+    purchasesImportDraft = "";
     suppressPollUntil = Date.now() + 4000;
     setSyncStatus("ok", "Synced");
     await loadAll();
@@ -2424,6 +2441,8 @@ function renderAddItemForm(container){
   const textarea = document.createElement("textarea");
   textarea.rows = 4;
   textarea.placeholder = "Great Value Diced Tomatoes: 3\nFriendly Farms Milk (1 gal)\nNew Frozen Item: 2 | freezer | Meat & Poultry";
+  textarea.value = bulkItemsDraft;
+  textarea.addEventListener("input", () => { bulkItemsDraft = textarea.value; });
   exampleBox.appendChild(textarea);
 
   form.appendChild(exampleBox);
@@ -2481,6 +2500,7 @@ function renderAddItemForm(container){
     addBtn.disabled = false;
     addBtn.textContent = "Add items";
     textarea.value = "";
+    bulkItemsDraft = "";
 
     let msg = added + " added, " + updated + " updated";
     if(skipped.length) msg += ", " + skipped.length + " skipped:\n" + skipped.join("\n");
