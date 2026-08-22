@@ -1542,6 +1542,21 @@ async function saveNote(m, noteText){
 // ==== Rendering ====
 function render(){
   const main = document.getElementById("main");
+
+  // main.innerHTML = "" below destroys and recreates every element on the
+  // page, including whichever textarea/input the person is actively typing
+  // into — on mobile this silently dismisses the on-screen keyboard, even
+  // though the draft-text variables (mealsImportDraft etc.) mean no typed
+  // content is actually lost. This happens on the initial page-load fetch
+  // resolving, the 20s background poll, and any other render() call. So:
+  // snapshot which element (by id) had focus and its cursor position before
+  // tearing down the DOM, then restore focus + selection to the newly
+  // created element with the same id afterward.
+  const active = document.activeElement;
+  const activeId = active && active.id;
+  const selStart = active && typeof active.selectionStart === "number" ? active.selectionStart : null;
+  const selEnd = active && typeof active.selectionEnd === "number" ? active.selectionEnd : null;
+
   main.innerHTML = "";
 
   renderExpiryBanner(main);
@@ -1556,6 +1571,16 @@ function render(){
 
   if(!query.trim()) renderMeals(main);
   renderItems(main);
+
+  if(activeId){
+    const revived = document.getElementById(activeId);
+    if(revived){
+      revived.focus();
+      if(selStart !== null && typeof revived.setSelectionRange === "function"){
+        try{ revived.setSelectionRange(selStart, selEnd); }catch(e){ /* not a text-selectable input, ignore */ }
+      }
+    }
+  }
 }
 
 // The "Actions" menu is a directory to the app's other modules (Add Items,
@@ -2047,6 +2072,7 @@ function renderMealsImport(container){
   const textarea = document.createElement("textarea");
   textarea.rows = 10;
   textarea.placeholder = "Day: Monday\nName: Sheet-Pan Salmon with Green Beans & Rice\nServings: 4\nIngredients:\n- 1 lb salmon fillet\n- 1 cup jasmine rice\nSteps:\n1. Preheat oven to 400°F.\n2. Roast salmon 12-15 min until it flakes easily.\nNote:\n---\nDay: Tuesday\n…";
+  textarea.id = "mealsImportTextarea";
   textarea.value = mealsImportDraft;
   textarea.addEventListener("input", () => { mealsImportDraft = textarea.value; });
   block.appendChild(textarea);
@@ -2120,6 +2146,7 @@ function renderPurchasesImport(container){
   const textarea = document.createElement("textarea");
   textarea.rows = 8;
   textarea.placeholder = "Date: 2026-08-20\nStore: Walmart\nFriendly Farms Milk (1 gal) | 1 | 3.55 | fridge | Dairy\nGreat Value Mayonnaise (30 fl oz) | 1 | 2.97 | pantry | Condiments & Sauces";
+  textarea.id = "purchasesImportTextarea";
   textarea.value = purchasesImportDraft;
   textarea.addEventListener("input", () => { purchasesImportDraft = textarea.value; });
   block.appendChild(textarea);
@@ -2441,6 +2468,7 @@ function renderAddItemForm(container){
   const textarea = document.createElement("textarea");
   textarea.rows = 4;
   textarea.placeholder = "Great Value Diced Tomatoes: 3\nFriendly Farms Milk (1 gal)\nNew Frozen Item: 2 | freezer | Meat & Poultry";
+  textarea.id = "bulkItemsTextarea";
   textarea.value = bulkItemsDraft;
   textarea.addEventListener("input", () => { bulkItemsDraft = textarea.value; });
   exampleBox.appendChild(textarea);
